@@ -14,9 +14,10 @@ enableBuildTKL = False
 #
 ## log config
 #
+FORMAT = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s'
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s',
+    format=FORMAT,
     datefmt='%H:%M:%S'
 )
 
@@ -117,6 +118,7 @@ logging.debug("pythonExecutable: " + pythonExecutable)
 #
 ## build platform, get libt2Vendor.a
 #
+vendorLibName = 'libt2Vendor.a'
 if enableBuildPlatform:
     buildPlatformScriptPath = os.path.join(portPath, 'script', 'build_platform.py')
     logging.debug("buildPlatformScriptPath: " + buildPlatformScriptPath)
@@ -126,6 +128,43 @@ if enableBuildPlatform:
         logging.debug("Create build vendor directory: " + buildVendorPath)
         os.makedirs(buildVendorPath)
 
+    buildVendorLibPath = os.path.join(buildVendorPath, vendorLibName)
+    useVendorLibPath = os.path.join(portPath, 'libs', vendorLibName)
+
+    buildPlatformFileLock = FileLock("buildPlatform.lock", buildVendorPath)
+
+    if buildPlatformFileLock.isLocked():
+        lastLibSize = 0
+        errCnt = 0
+        # wait build complete
+        while buildPlatformFileLock.isLocked():
+            logging.info("Wait build platform complete...")
+            time.sleep(3)
+
+            if os.path.exists(buildVendorLibPath):
+                curLibSize = os.stat(buildVendorLibPath).st_size
+                logging.debug(f"curLibSize: {buildVendorLibPath} {curLibSize}")
+                if lastLibSize != curLibSize:
+                    lastLibSize = curLibSize
+                    errCnt = 0
+                    logging.debug(f'update vendor lib size, errCnt {errCnt}')
+                else:
+                    errCnt += 1
+                    logging.debug(f'vendor errCnt {errCnt}')
+            else:
+                errCnt += 1
+                logging.debug(f'vendor errCnt {errCnt}')
+
+            if errCnt >= 3:
+                buildPlatformFileLock.unlock()
+                shutil.rmtree(buildVendorPath)
+                os.makedirs(buildVendorPath)
+
+    buildPlatformFileLock.lock()
+
+    # 为了使 .sconsign.dblite 生成在 buildVendorPath 目录下
+    os.chdir(buildVendorPath)
+
     buildPlatformScriptArgs = (
         "--compiler-path " + compilerPath +
         " --vendor-path " + os.path.join(vendorPath, "beken_os", "beken378") +
@@ -133,21 +172,10 @@ if enableBuildPlatform:
         " --open-sdk-path " + os.path.join(vendorPath, "tuya_open_sdk") +
         " --tkl-path " + os.path.join(vendorPath, "tuyaos_adapter") +
         " --object-output-dir " + buildVendorPath +
-        " --lib-output-dir " + os.path.join(portPath, "libs")
+        " --lib-output-dir " + os.path.join(portPath, "libs") +
+        " --lib-output-name " + vendorLibName
     )
     logging.debug("buildPlatformScriptArgs: " + buildPlatformScriptArgs)
-
-    os.chdir(buildVendorPath) # 为了使 .sconsign.dblite 生成在 buildVendorPath 目录下
-    buildPlatformFileLock = FileLock("buildPlatform.lock", buildPath)
-
-    if buildPlatformFileLock.isLocked():
-        # wait build complete
-        while buildPlatformFileLock.isLocked():
-            logging.info("Wait build platform complete...")
-            time.sleep(3)
-        logging.info("Build platform complete")
-
-    buildPlatformFileLock.lock()
 
     # 构建命令
     result = subprocess.run([pythonExecutable, '-u', '-m', 'SCons', '-f', buildPlatformScriptPath, 'CUSTOM_ARGS=' + buildPlatformScriptArgs])
@@ -158,15 +186,16 @@ if enableBuildPlatform:
     if result.returncode == 0:
         logging.debug("build platform success")
         # 比较lib文件是否有变化
-        buildVendorLibPath = os.path.join(buildVendorPath, "libt2Vendor.a")
-        useVendorLibPath = os.path.join(portPath, 'libs', "libt2Vendor.a")
         if not compareFileHash(buildVendorLibPath, useVendorLibPath):
-            # copy buildVendorLibPath -> useVendorLibPath
-            logging.debug("copy " + buildVendorLibPath + " -> " + useVendorLibPath)
+            logging.info("copy " + buildVendorLibPath + " -> " + useVendorLibPath)
             shutil.copy(buildVendorLibPath, useVendorLibPath)
 
     buildPlatformFileLock.unlock()
 
+#
+## build open sdk, get libtuyaos.a
+#
+openSDKLibName = 'libtuyaos.a'
 if enableBuildOpenSDK:
     buildOpenSDKScriptPath = os.path.join(portPath, 'script', 'build_open_sdk.py')
 
@@ -175,6 +204,43 @@ if enableBuildOpenSDK:
         logging.debug("Create build open sdk directory: " + buildOpenSDKPath)
         os.makedirs(buildOpenSDKPath)
 
+    buildOpenSDKLibPath = os.path.join(buildOpenSDKPath, openSDKLibName)
+    useOpenSDKLibPath = os.path.join(portPath, 'libs', openSDKLibName)
+
+    buildOpenSDKFileLock = FileLock("buildOpenSDK.lock", buildOpenSDKPath)
+
+    if buildOpenSDKFileLock.isLocked():
+        lastLibSize = 0
+        errCnt = 0
+        # wait build complete
+        while buildOpenSDKFileLock.isLocked():
+            logging.info("Wait build open sdk complete...")
+            time.sleep(3)
+
+            if os.path.exists(buildOpenSDKLibPath):
+                curLibSize = os.stat(buildOpenSDKLibPath).st_size
+                logging.debug(f"curLibSize: {buildOpenSDKLibPath} {curLibSize}")
+                if lastLibSize != curLibSize:
+                    lastLibSize = curLibSize
+                    errCnt = 0
+                    logging.debug(f'update open sdk lib size, errCnt {errCnt}')
+                else:
+                    errCnt += 1
+                    logging.debug(f'open sdk errCnt {errCnt}')
+            else:
+                errCnt += 1
+                logging.debug(f'open sdk errCnt {errCnt}')
+
+            if errCnt >= 3:
+                buildOpenSDKFileLock.unlock()
+                shutil.rmtree(buildOpenSDKPath)
+                os.makedirs(buildOpenSDKPath)
+
+    buildOpenSDKFileLock.lock()
+
+    # 为了使 .sconsign.dblite 生成在 buildOpenSDKPath 目录下
+    os.chdir(buildOpenSDKPath)
+
     buildOpenSDKScriptArgs = (
         "--compiler-path " + compilerPath +
         " --vendor-path " + os.path.join(vendorPath, "beken_os", "beken378") +
@@ -182,21 +248,10 @@ if enableBuildOpenSDK:
         " --open-sdk-path " + os.path.join(vendorPath, "tuya_open_sdk") +
         " --tkl-path " + os.path.join(vendorPath, "tuyaos_adapter") +
         " --object-output-dir " + buildOpenSDKPath +
-        " --lib-output-dir " + os.path.join(portPath, "libs")
+        " --lib-output-dir " + os.path.join(portPath, "libs") +
+        " --lib-output-name " + openSDKLibName
     )
     logging.debug("buildOpenSDKScriptArgs: " + buildOpenSDKScriptArgs)
-
-    os.chdir(buildOpenSDKPath) # 为了使 .sconsign.dblite 生成在 buildOpenSDKPath 目录下
-    buildOpenSDKFileLock = FileLock("buildOpenSDK.lock", buildPath)
-
-    if buildOpenSDKFileLock.isLocked():
-        # wait build complete
-        while buildOpenSDKFileLock.isLocked():
-            logging.info("Wait build open sdk complete...")
-            time.sleep(3)
-        logging.info("Build open sdk complete")
-
-    buildOpenSDKFileLock.lock()
 
     # 构建命令
     result = subprocess.run([pythonExecutable, '-u', '-m', 'SCons', '-f', buildOpenSDKScriptPath, 'CUSTOM_ARGS=' + buildOpenSDKScriptArgs])
@@ -207,8 +262,6 @@ if enableBuildOpenSDK:
     if result.returncode == 0:
         logging.debug("build platform success")
         # 比较lib文件是否有变化
-        buildOpenSDKLibPath = os.path.join(buildOpenSDKPath, "libtuyaos.a")
-        useOpenSDKLibPath = os.path.join(portPath, 'libs', "libtuyaos.a")
         if not compareFileHash(buildOpenSDKLibPath, useOpenSDKLibPath):
             # copy buildOpenSDKLibPath -> useOpenSDKLibPath
             logging.debug("copy " + buildOpenSDKLibPath + " -> " + useOpenSDKLibPath)
@@ -216,6 +269,10 @@ if enableBuildOpenSDK:
 
     buildOpenSDKFileLock.unlock()
 
+#
+## build tkl, get libt2Tkl.a
+#
+tklLibName = 'libt2Tkl.a'
 if enableBuildTKL:
     buildTKLScriptPath = os.path.join(portPath, 'script', 'build_tkl.py')
     logging.debug("buildTKLScriptPath: " + buildTKLScriptPath)
@@ -224,7 +281,45 @@ if enableBuildTKL:
     if not os.path.exists(buildTklPath):
         logging.debug("Create build tkl directory: " + buildTklPath)
         os.makedirs(buildTklPath)
-    
+
+    buildTklLibPath = os.path.join(buildTklPath, tklLibName)
+    useTklLibPath = os.path.join(portPath, 'libs', tklLibName)
+
+    buildTKLFileLock = FileLock("buildTKL.lock", buildTklPath)
+
+    if buildTKLFileLock.isLocked():
+        lastLibSize = 0
+        errCnt = 0
+        # wait build complete
+        while buildTKLFileLock.isLocked():
+            logging.info("Wait build tkl complete...")
+            time.sleep(3)
+
+            if os.path.exists(buildTklLibPath):
+                curLibSize = os.stat(buildTklLibPath).st_size
+                logging.debug(f"curLibSize: {buildTklLibPath} {curLibSize}")
+                if lastLibSize != curLibSize:
+                    lastLibSize = curLibSize
+                    errCnt = 0
+                    logging.debug(f'update tkl lib size, errCnt {errCnt}')
+                else:
+                    errCnt += 1
+                    logging.debug(f'tkl errCnt {errCnt}')
+            else:
+                errCnt += 1
+                logging.debug(f'tkl errCnt {errCnt}')
+
+            if errCnt >= 3:
+                buildTKLFileLock.unlock()
+                shutil.rmtree(buildTklPath)
+                os.makedirs(buildTklPath)
+
+
+    buildTKLFileLock.lock()
+
+    # 为了使 .sconsign.dblite 生成在 buildTklPath 目录下
+    os.chdir(buildTklPath)
+
     buildTKLScriptArgs = (
         "--compiler-path " + compilerPath +
         " --vendor-path " + os.path.join(vendorPath, "beken_os", "beken378") +
@@ -232,21 +327,10 @@ if enableBuildTKL:
         " --open-sdk-path " + os.path.join(vendorPath, "tuya_open_sdk") +
         " --tkl-path " + os.path.join(vendorPath, "tuyaos_adapter") +
         " --object-output-dir " + buildTklPath +
-        " --lib-output-dir " + os.path.join(portPath, "libs")
+        " --lib-output-dir " + os.path.join(portPath, "libs") +
+        " --lib-output-name " + tklLibName
     )
     logging.debug("buildTKLScriptArgs: " + buildTKLScriptArgs)
-
-    os.chdir(buildTklPath) # 为了使 .sconsign.dblite 生成在 buildTklPath 目录下
-    buildTKLFileLock = FileLock("buildTKL.lock", buildPath)
-
-    if buildTKLFileLock.isLocked():
-        # wait build complete
-        while buildTKLFileLock.isLocked():
-            logging.info("Wait build tkl complete...")
-            time.sleep(3)
-        logging.info("Build tkl complete")
-
-    buildTKLFileLock.lock()
 
     # 构建命令
     result = subprocess.run([pythonExecutable, '-u', '-m', 'SCons', '-f', buildTKLScriptPath, 'CUSTOM_ARGS=' + buildTKLScriptArgs])
@@ -257,8 +341,6 @@ if enableBuildTKL:
     if result.returncode == 0:
         logging.debug("build tkl success")
         # 比较lib文件是否有变化
-        buildTklLibPath = os.path.join(buildTklPath, "libt2Tkl.a")
-        useTklLibPath = os.path.join(portPath, 'libs', "libt2Tkl.a")
         if not compareFileHash(buildTklLibPath, useTklLibPath):
             # copy buildTklLibPath -> useTklLibPath
             logging.debug("copy " + buildTklLibPath + " -> " + useTklLibPath)

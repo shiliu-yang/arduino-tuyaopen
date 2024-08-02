@@ -4,8 +4,6 @@ import sys
 import logging
 from SCons.Script import *
 
-outputLibName = 'libt2Vendor.a'
-
 #
 ## log config
 #
@@ -43,6 +41,7 @@ parser.add_argument('--open-sdk-path', type=str, required=True, help='Specify th
 parser.add_argument('--tkl-path', type=str, required=True, help='Specify the tkl path')
 parser.add_argument('--object-output-dir', type=str, required=True, help='Specify the object output directory')
 parser.add_argument('--lib-output-dir', type=str, required=True, help='Specify the library output directory')
+parser.add_argument('--lib-output-name', type=str, required=True, help='Specify the library output name')
 
 # 使用SCons自定义参数
 if 'CUSTOM_ARGS' in ARGUMENTS:
@@ -58,11 +57,11 @@ openSdkPath = os.path.join(args.open_sdk_path, '')
 tklPath = os.path.join(args.tkl_path, '')
 
 objectOutputDir=args.object_output_dir
-# libOutputDir=args.lib_output_dir
 libOutputDir=objectOutputDir
 openSdkIncludeFlags = os.path.join(flagsPath, "open_sdk_includes.txt")
 vendorIncludeFlags = os.path.join(flagsPath, "vendor_includes.txt")
 tklIncludeFlags = os.path.join(flagsPath, "port_includes.txt")
+outputLibName = args.lib_output_name
 
 # 打印输入参数
 logging.debug("compiler path: " + compilerPath)
@@ -75,6 +74,7 @@ logging.debug("library output directory: " + libOutputDir)
 logging.debug("openSdkIncludeFlags: " + openSdkIncludeFlags)
 logging.debug("vendorIncludeFlags: " + vendorIncludeFlags)
 logging.debug("tklIncludeFlags: " + tklIncludeFlags)
+logging.debug("outputLibName: " + outputLibName)
 
 # 路径和文件是否存在判断
 if checkPath(compilerPath) == False:
