@@ -13,7 +13,7 @@ import logging
 import subprocess
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='[%(levelname)s][%(filename)s:%(lineno)d]%(message)s'
 )
 
@@ -27,12 +27,14 @@ parser.add_argument('--compiler-path', type=str, help='compiler path')
 parser.add_argument('--port-path', type=str, help='port path')
 parser.add_argument('--output-path', type=str, help='output path')
 parser.add_argument('--output-name', type=str, help='output bin file name')
+parser.add_argument('--app-version', type=str, help='tuya app version')
 
 args = parser.parse_args()
 compilerPath = args.compiler_path
 portPath = args.port_path
 outputPath = args.output_path
 outputName = args.output_name
+appVersion = args.app_version
 
 # Normalize file paths
 compilerPath = os.path.normpath(compilerPath)
@@ -53,18 +55,22 @@ if platform == "linux" or platform == "linux2":
     objcopyTool = os.path.join(compilerPath, 'arm-none-eabi-objcopy')
     bekenPackTool = os.path.join(portPath, 'tools', 'linux', 'beken_packager')
     encryptTool = os.path.join(portPath, 'tools', 'linux', 'encrypt')
+    otaPackageTool = os.path.join(portPath, 'tools', 'linux', 'rt_ota_packaging_tool_cli')
+    tuyaPackageTool = os.path.join(portPath, 'tools', 'linux', 'package')
 elif platform == "win32":
     # Windows
     objcopyTool = os.path.join(compilerPath, 'arm-none-eabi-objcopy.exe')
     bekenPackTool = os.path.join(portPath, 'tools', 'windows', 'beken_packager.exe')
     encryptTool = os.path.join(portPath, 'tools', 'windows', 'encrypt.exe')
+    otaPackageTool = os.path.join(portPath, 'tools', 'windows', 'rt_ota_packaging_tool_cli.exe')
+    tuyaPackageTool = os.path.join(portPath, 'tools', 'windows', 'package')
 elif platform == "darwin":
     # macOS
     logging.error("Running on macOS, not supported")
-    exit(1)
+    sys.exit(1)
 else:
     logging.error(f"Unknown platform: {platform}")
-    exit(1)
+    sys.exit(1)
 
 # Print all information
 logging.debug("system: " + platform)
@@ -75,23 +81,30 @@ logging.debug("bekenPackTool: " + bekenPackTool)
 logging.debug("encryptTool: " + encryptTool)
 logging.debug("outputPath: " + outputPath)
 logging.debug("outputName: " + outputName)
+logging.debug("appVersion: " + appVersion)
 
 # Check if the beken_packager exists
 if not os.path.exists(t2Bootloader):
     logging.error("t2 bootloader not found")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(axfFile):
     logging.error("AXF file not found")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(objcopyTool):
     logging.error("objcopy not found")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(bekenPackTool):
     logging.error("beken_packager not found")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(encryptTool):
     logging.error("encrypt not found")
-    exit(1)
+    sys.exit(1)
+if not os.path.exists(otaPackageTool):
+    logging.error("otaPackageTool not found")
+    sys.exit(1)
+if not os.path.exists(tuyaPackageTool):
+    logging.error("tuyaPackageTool not found")
+    sys.exit(1)
 
 # output file path
 binFilePath = os.path.join(outputPath, 'output')
@@ -134,7 +147,7 @@ encBinFile = os.path.join(binFilePath, outputName + "_enc.bin")
 if not os.path.exists(encBinFile):
     logging.error("encBinFile: " + encBinFile)
     logging.error("encrypt failed")
-    exit(1)
+    sys.exit(1)
 
 # Generate json file
 configStr = '''
@@ -183,15 +196,49 @@ QIOBinFile = os.path.join(binFilePath, outputName + "_QIO.bin")
 encUartBinFile = os.path.join(binFilePath, outputName + "_enc_uart_1.00.bin")
 UABinFile = os.path.join(binFilePath, outputName + "_UA.bin")
 
+rblFile = os.path.join(binFilePath, outputName + appVersion + ".rbl")
+
+rtOTAPackageCommand = [
+    otaPackageTool,
+    '-f', binFile,
+    '-v', ' '
+    '-o', rblFile,
+    '-p', 'app',
+    '-c', 'gzip',
+    '-s', 'aes',
+    '-k', '0123456789ABCDEF0123456789ABCDEF',
+    '-i', '0123456789ABCDEF'
+]
+subprocess.run(rtOTAPackageCommand)
+
+
+ugFile = outputName + '_UG_' + appVersion + ".bin"
+
+tuyaPackageCommand = [
+    tuyaPackageTool,
+    os.path.join(binFilePath, outputName + ".rbl"),
+    outputName + '_UG_' + appVersion + ".bin",
+    appVersion
+]
+
+
+# 将命令列表转换为字符串
+command_str = ' '.join(tuyaPackageCommand)
+
+# 打印命令
+print(command_str)
+
+subprocess.run(tuyaPackageCommand)
+
 # Check allBin and UartBin
 if not os.path.exists(allBinFile):
     logging.debug("allBinFile: " + allBinFile)
     logging.debug("pack failed")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(encUartBinFile):
     logging.debug("encUartBinFile: " + encUartBinFile)
     logging.debug("pack failed")
-    exit(1)
+    sys.exit(1)
 
 t2_ate_path = os.path.join(portPath, 'tools', 't2_ate')
 if os.path.exists(t2_ate_path):
