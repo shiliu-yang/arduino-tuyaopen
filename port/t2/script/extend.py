@@ -17,6 +17,15 @@ logging.basicConfig(
     format='[%(levelname)s][%(filename)s:%(lineno)d]%(message)s'
 )
 
+#
+## 将当前脚本所在路径添加为搜索模块的路径
+#
+scriptSelfPath = os.path.dirname(os.path.realpath(__file__))
+logging.debug("scriptSelfPath: " + scriptSelfPath)
+sys.path.append(scriptSelfPath)
+
+from appVersionParse import *
+
 # 获取当前Python解释器路径
 pythonExecutable = sys.executable
 pythonExecutable = os.path.normpath(pythonExecutable)
@@ -27,25 +36,52 @@ parser.add_argument('--compiler-path', type=str, help='compiler path')
 parser.add_argument('--port-path', type=str, help='port path')
 parser.add_argument('--output-path', type=str, help='output path')
 parser.add_argument('--output-name', type=str, help='output bin file name')
-parser.add_argument('--app-version', type=str, help='tuya app version')
+# parser.add_argument('--app-version', type=str, help='tuya app version')
 
 args = parser.parse_args()
 compilerPath = args.compiler_path
 portPath = args.port_path
 outputPath = args.output_path
+
 outputName = args.output_name
-appVersion = args.app_version
+# # Remove '.ino'
+# rmOutputNameSuffix='.ino'
+# if outputName.endswith(rmOutputNameSuffix):
+#     outputName=outputName[:-len(rmOutputNameSuffix)]
 
 # Normalize file paths
 compilerPath = os.path.normpath(compilerPath)
 portPath = os.path.normpath(portPath)
 outputPath = os.path.normpath(outputPath)
 
+# Get binary version
+appConfigTmpFile = os.path.join(outputPath, 'tuyaTmp', 'appConfig', 'appConfig.json')
+appVersion = appVersionParse(appConfigTmpFile)
+
+# output file path
+binFilePath = os.path.join(outputPath, 'tuyaTmp', 'output', appVersion)
+
+# delete binFilePath
+if os.path.exists(binFilePath):
+    shutil.rmtree(binFilePath)
+
+os.makedirs(binFilePath)
+# change to binFilePath
+os.chdir(binFilePath)
+
+# Copy axf/map to binFilePath
+axfFileSource = os.path.join(outputPath, outputName + ".axf")
+axfFile = os.path.join(binFilePath, outputName + ".axf")
+shutil.copy2(axfFileSource, axfFile)
+
+mapFileSource = os.path.join(outputPath, outputName + ".map")
+mapFile = os.path.join(binFilePath, outputName + ".map")
+shutil.copy2(mapFileSource, mapFile)
+
 # Gets the operating system
 platform = sys.platform
 
 t2Bootloader = os.path.join(portPath, 'tools', 't2_bootloader_enc.bin')
-axfFile = os.path.join(outputPath, outputName + ".axf")
 objcopyTool = ""
 bekenPackTool = ""
 encryptTool = ""
@@ -106,20 +142,9 @@ if not os.path.exists(tuyaPackageTool):
     logging.error("tuyaPackageTool not found")
     sys.exit(1)
 
-# output file path
-binFilePath = os.path.join(outputPath, 'output')
-
-# delete binFilePath
-if os.path.exists(binFilePath):
-    shutil.rmtree(binFilePath)
-
-os.makedirs(binFilePath)
-# change to binFilePath
-os.chdir(binFilePath)
-
-binFile = os.path.join(binFilePath, outputName + ".bin")
 
 # Convert axf to bin
+binFile = os.path.join(binFilePath, outputName + ".bin")
 objcopyCommand = [
     objcopyTool,
     '-O', 'binary',
@@ -192,9 +217,9 @@ os.system(' '.join(bekenPackCommand))
 
 # Output binary name
 allBinFile = os.path.join(binFilePath, "all_1.00.bin")
-QIOBinFile = os.path.join(binFilePath, outputName + "_QIO.bin")
+QIOBinFile = os.path.join(binFilePath, outputName + "_QIO_" + appVersion + ".bin")
 encUartBinFile = os.path.join(binFilePath, outputName + "_enc_uart_1.00.bin")
-UABinFile = os.path.join(binFilePath, outputName + "_UA.bin")
+UABinFile = os.path.join(binFilePath, outputName + "_UA_" + appVersion + ".bin")
 
 rblFile = os.path.join(binFilePath, outputName + appVersion + ".rbl")
 
@@ -211,16 +236,14 @@ rtOTAPackageCommand = [
 ]
 subprocess.run(rtOTAPackageCommand)
 
-
-ugFile = outputName + '_UG_' + appVersion + ".bin"
+ugFile = outputName + '_UG_' + appVersion + '.bin'
 
 tuyaPackageCommand = [
     tuyaPackageTool,
-    os.path.join(binFilePath, outputName + ".rbl"),
-    outputName + '_UG_' + appVersion + ".bin",
+    os.path.join(binFilePath, outputName + '.rbl'),
+    outputName + '_UG_' + appVersion + '.bin',
     appVersion
 ]
-
 
 # 将命令列表转换为字符串
 command_str = ' '.join(tuyaPackageCommand)
@@ -256,3 +279,30 @@ else:
 
 # rename UA Bin
 shutil.move(encUartBinFile, UABinFile)
+
+# Copy QIO binary for Arduino upload
+arduinoUploadBinary=os.path.join(outputPath, outputName + "_QIO" + ".bin")
+if os.path.exists(arduinoUploadBinary):
+    os.remove(arduinoUploadBinary)
+
+shutil.copy2(QIOBinFile, arduinoUploadBinary)
+
+# Remove unnecessary files
+## config.json
+if os.path.exists(os.path.join(binFilePath, "config.json")):
+    os.remove(os.path.join(binFilePath, "config.json"))
+## {sketchName}.bin
+if os.path.exists(os.path.join(binFilePath, outputName + ".bin")):
+    os.remove(os.path.join(binFilePath, outputName + ".bin"))
+## {sketchName}.cpr
+if os.path.exists(os.path.join(binFilePath, outputName + ".cpr")):
+    os.remove(os.path.join(binFilePath, outputName + ".cpr"))
+## {sketchName}.out
+if os.path.exists(os.path.join(binFilePath, outputName + ".out")):
+    os.remove(os.path.join(binFilePath, outputName + ".out"))
+## {sketchName}.rbl
+if os.path.exists(os.path.join(binFilePath, outputName + ".rbl")):
+    os.remove(os.path.join(binFilePath, outputName + ".rbl"))
+## {sketchName}_enc.bin
+if os.path.exists(os.path.join(binFilePath, outputName + "_enc.bin")):
+    os.remove(os.path.join(binFilePath, outputName + "_enc.bin"))

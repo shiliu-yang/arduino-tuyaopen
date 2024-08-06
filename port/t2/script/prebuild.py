@@ -11,12 +11,14 @@ enableBuildPlatform = False
 enableBuildOpenSDK = False
 enableBuildTKL = False
 
+appConfigJsonName = 'appConfig.json'
+
 #
 ## log config
 #
 FORMAT = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s'
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format=FORMAT,
     datefmt='%H:%M:%S'
 )
@@ -64,24 +66,35 @@ parser.add_argument('--compiler-path', type=str, required=True, help='compiler p
 parser.add_argument('--port-path', type=str, required=True, help='port path')
 parser.add_argument('--platform-path', type=str, required=True, help='platform path, the folder containing boards.txt in Arduino IDE')
 parser.add_argument('--vendor-path', type=str, required=True, help='vendor path, chip vendor path')
+parser.add_argument('--build-path', type=str, help='Build path')
+parser.add_argument('--sketch-path', type=str, help='Sketch path')
+parser.add_argument('--use-python-venv', type=int, required=True, help='0: use host python, dependencies may be missing')
 
 args = parser.parse_args()
 compilerPath = args.compiler_path
 portPath = args.port_path
 platformPath = args.platform_path
 vendorPath = args.vendor_path
+sketchBuildPath = args.build_path
+sketchPath = args.sketch_path
+usePythonVenv = args.use_python_venv
 
 # 标准化路径
 compilerPath = os.path.normpath(compilerPath)
 portPath = os.path.normpath(portPath)
 platformPath = os.path.normpath(platformPath)
 vendorPath = os.path.normpath(vendorPath)
+sketchBuildPath = os.path.normpath(sketchBuildPath)
+sketchPath = os.path.normpath(sketchPath)
 
 # 打印路径信息
 logging.debug("compilerPath: " + compilerPath)
 logging.debug("portPath: " + portPath)
 logging.debug("platformPath: " + platformPath)
 logging.debug("vendorPath: " + vendorPath)
+logging.debug("sketchBuildPath: " + sketchBuildPath)
+logging.debug("sketchPath: " + sketchPath)
+logging.debug(f"usePythonVenv: {usePythonVenv}")
 
 # 检查路径是否存在
 if not checkPath(compilerPath):
@@ -92,6 +105,11 @@ if not checkPath(platformPath):
     sys.exit(1)
 if not checkPath(vendorPath):
     sys.exit(1)
+
+# 获取当前Python解释器路径
+pythonExecutable = sys.executable
+pythonExecutable = os.path.normpath(pythonExecutable)
+logging.debug("pythonExecutable: " + pythonExecutable)
 
 #
 ## Create build directory
@@ -109,17 +127,38 @@ logging.debug("scriptSelfPath: " + scriptSelfPath)
 sys.path.append(scriptSelfPath)
 
 from FileLock import FileLock
+from appVersionParse import *
 
-# 获取当前Python解释器路径
-pythonExecutable = sys.executable
-pythonExecutable = os.path.normpath(pythonExecutable)
-logging.debug("pythonExecutable: " + pythonExecutable)
+#
+## App version parse
+#
+tuyaTmpDir = os.path.join(sketchBuildPath, 'tuyaTmp')
+if not os.path.exists(tuyaTmpDir):
+    logging.debug("Create build directory: " + tuyaTmpDir)
+    os.makedirs(tuyaTmpDir)
+
+appConfigDir = os.path.join(tuyaTmpDir, 'appConfig')
+if os.path.exists(appConfigDir):
+    shutil.rmtree(appConfigDir)
+os.makedirs(appConfigDir)
+
+# Copy sketch/appConfig.json -> /tmp/.../tuyaTmp/appConfig/appConfig.json
+appConfigJson = os.path.join(sketchPath, appConfigJsonName)
+appConfigJsonTmp = os.path.join(appConfigDir, appConfigJsonName)
+logging.debug("appConfigJson: " + appConfigJson)
+shutil.copy(appConfigJson, appConfigJsonTmp)
+
+appBuildDefineFile = os.path.join(appConfigDir, 'appBuildDefine.txt')
+appVersionWrite(appConfigJsonTmp, appBuildDefineFile)
+
+# appBuildDefineFile = os.path.join(portPath, 'flags', 'appBuildDefine.txt')
+# appVersionWrite(appConfigJsonTmp, appBuildDefineFile)
 
 #
 ## build platform, get libt2Vendor.a
 #
 vendorLibName = 'libt2Vendor.a'
-if enableBuildPlatform:
+if enableBuildPlatform and usePythonVenv: # usePythonVenv==1, 使用虚拟环境可以保证不缺少依赖
     buildPlatformScriptPath = os.path.join(portPath, 'script', 'build_platform.py')
     logging.debug("buildPlatformScriptPath: " + buildPlatformScriptPath)
 
