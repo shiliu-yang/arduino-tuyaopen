@@ -146,13 +146,11 @@ os.makedirs(appConfigDir)
 appConfigJson = os.path.join(sketchPath, appConfigJsonName)
 appConfigJsonTmp = os.path.join(appConfigDir, appConfigJsonName)
 logging.debug("appConfigJson: " + appConfigJson)
-shutil.copy(appConfigJson, appConfigJsonTmp)
+if os.path.exists(appConfigJson):
+    shutil.copy(appConfigJson, appConfigJsonTmp)
 
 appBuildDefineFile = os.path.join(appConfigDir, 'appBuildDefine.txt')
 appVersionWrite(appConfigJsonTmp, appBuildDefineFile)
-
-# appBuildDefineFile = os.path.join(portPath, 'flags', 'appBuildDefine.txt')
-# appVersionWrite(appConfigJsonTmp, appBuildDefineFile)
 
 #
 ## build platform, get libt2Vendor.a

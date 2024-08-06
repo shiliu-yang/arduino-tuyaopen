@@ -5,6 +5,8 @@ import logging
 import re
 import os
 
+defaultVension="1.0.0"
+
 #
 ## log config
 #
@@ -16,17 +18,20 @@ logging.basicConfig(
 )
 
 def appVersionParse(filePath):
+    if not os.path.exists(filePath):
+        return defaultVension
+
     try:
         with open(filePath, 'r') as file:
             data = json.load(file)
-            version = data.get("appVersion", "1.0.0")
+            version = data.get("appVersion", defaultVension)
             
             # Validate the version format
             if not re.match(r'^\d+\.\d+\.\d+$', version):
-                raise ValueError("Incorrect version format, using default version 1.0.0")
+                raise ValueError(f"Incorrect version format, using default version {defaultVension}")
     except (json.JSONDecodeError, KeyError, ValueError) as e:
         logging.error(f"Parsing error: {e}")
-        version = "1.0.0"
+        version = defaultVension
 
     return version
 
