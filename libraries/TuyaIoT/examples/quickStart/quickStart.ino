@@ -24,7 +24,9 @@ void setup() {
 
   TuyaIoT.setEventCallback(tuyaIoTEventCallback);
   TuyaIoT.setLicense("uuidxxxxxxxxxxxxxxxx", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-  TuyaIoT.begin("qhivvyqawogv04e4", "1.0.0");
+
+  // The "USER_SW_VER" comes from the "appVersion" field in "appConfig.json"
+  TuyaIoT.begin("qhivvyqawogv04e4", USER_SW_VER);
 }
 
 void loop() {
