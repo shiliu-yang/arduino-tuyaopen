@@ -12,7 +12,7 @@ defaultVension="1.0.0"
 #
 FORMAT = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s'
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=FORMAT,
     datefmt='%H:%M:%S'
 )

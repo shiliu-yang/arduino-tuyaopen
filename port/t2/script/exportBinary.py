@@ -34,20 +34,3 @@ if os.path.exists(sketchOutputPath):
 
 # Copy the binary dir to the sketch folder
 shutil.copytree(buildOutputPath, sketchOutputPath)
-
-# # Remove unnecessary files
-# ## config.json
-# if os.path.exists(os.path.join(sketchOutputPath, "config.json")):
-#     os.remove(os.path.join(sketchOutputPath, "config.json"))
-# ## {sketchName}.bin
-# if os.path.exists(os.path.join(sketchOutputPath, sketchName + ".bin")):
-#     os.remove(os.path.join(sketchOutputPath, sketchName + ".bin"))
-# ## {sketchName}.cpr
-# if os.path.exists(os.path.join(sketchOutputPath, sketchName + ".cpr")):
-#     os.remove(os.path.join(sketchOutputPath, sketchName + ".cpr"))
-# ## {sketchName}.out
-# if os.path.exists(os.path.join(sketchOutputPath, sketchName + ".out")):
-#     os.remove(os.path.join(sketchOutputPath, sketchName + ".out"))
-# ## {sketchName}_enc.bin
-# if os.path.exists(os.path.join(sketchOutputPath, sketchName + "_enc.bin")):
-#     os.remove(os.path.join(sketchOutputPath, sketchName + "_enc.bin"))
