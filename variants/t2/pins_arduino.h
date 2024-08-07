@@ -27,6 +27,9 @@ extern "C" {
 #define p26 (26u)
 #define p28 (28u)
 
+#define LED_BUILTIN     p26
+#define BUTTON_BUILTIN  p7
+
 static const uint8_t A0 = (23u);
 static const uint8_t A1 = (22u);
 static const uint8_t A2 = (24u);
