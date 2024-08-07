@@ -54,6 +54,6 @@ def appVersionWrite(jsonFile, outputFile):
     try:
         with open(outputFile, "w") as text_file:
             text_file.write(versionStr)
-        logging.info(f"Version number {versionStr} has been written to {outputFile}")
+        logging.debug(f"Version number {versionStr} has been written to {outputFile}")
     except IOError:
         logging.error(f"Failed to write to file {outputFile}")
