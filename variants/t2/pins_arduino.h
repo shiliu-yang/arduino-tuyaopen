@@ -56,6 +56,14 @@ TUYA_ADC_BASE_CFG_T adcCfgGet(uint8_t pin);
 TUYA_PWM_NUM_E pwmPinToNum(uint8_t pin);
 TUYA_PWM_BASE_CFG_T pwmCfgGet(uint8_t pin);
 
+// SPI
+#define SPI_DEFAULT_CLOCK  (8000000u)
+
+#define PIN_SPI0_MISO       (p17)
+#define PIN_SPI0_MOSI       (p16)
+#define PIN_SPI0_SCK        (p14)
+#define PIN_SPI0_CS         (p15)
+
 #if defined(__cplusplus) && !defined(c_plusplus)
 }
 #endif // __cplusplus
