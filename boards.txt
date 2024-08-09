@@ -70,3 +70,6 @@ t2.export.binary.cmd.m=echo "TODO"
 # upload tool
 t2.upload.tool=tyutool
 t2.upload.tool.default=tyutool
+
+# monitor
+t2.monitor_port.serial.baudrate=115200
