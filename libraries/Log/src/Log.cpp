@@ -1,0 +1,31 @@
+#include "Log.h"
+
+using namespace arduino;
+
+extern "C" void _log_output_cb(const char *str)
+{
+  Serial.print(str);
+}
+
+LogClass::LogClass()
+{
+  tal_log_init(TAL_LOG_LEVEL_DEBUG, OPEN_SDK_LOG_BUFFER_SIZE, (TAL_LOG_OUTPUT_CB)_log_output_cb);
+  tal_log_color_enable_set(FALSE);
+}
+
+LogClass::~LogClass()
+{
+  tal_log_release();
+}
+
+void LogClass::setLevel(LogLevel level)
+{
+  tal_log_set_level(static_cast<TAL_LOG_LEVEL_E>(level));
+}
+
+void LogClass::setColor(bool enable)
+{
+  tal_log_color_enable_set(enable);
+}
+
+LogClass Log;

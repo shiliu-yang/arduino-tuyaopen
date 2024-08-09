@@ -45,11 +45,6 @@ extern "C"
 
 extern void app_open_sdk_init(void);
 
-static void log_output_cb(const char *str)
-{
-  Serial.print(str);
-}
-
 static void arduino_thread(void *arg)
 {
 #if defined(ARDUINO_TUYA_T2)
@@ -63,10 +58,6 @@ static void arduino_thread(void *arg)
   tkl_uart_deinit(TUYA_UART_NUM_0);
   tkl_uart_deinit(TUYA_UART_NUM_1);
 #endif // defined(ARDUINO_TUYA_T2)
-
-  // tuya log init
-  tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)log_output_cb);
-  tal_log_color_enable_set(FALSE);
 
   app_open_sdk_init();
 
