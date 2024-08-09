@@ -1,11 +1,15 @@
 #include "OneButton.h"
+#include "SimpleLed.h"
+
 #include "TuyaIoT.h"
 
-#define ledPin    p16
-int ledState = LOW;
+#define ledPin  LED_BUILTIN
+// Turn on LED when output low level
+SimpleLed led(ledPin, LOW);
 
-#define buttonPin p14
+#define buttonPin BUTTON_BUILTIN
 OneButton button(buttonPin);
+
 
 #define DPID_SWITCH 1
 
@@ -14,8 +18,7 @@ void setup() {
   Serial.begin(115200);
 
   // led
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, ledState);
+  led.off();
 
   // button
   button.attachClick(buttonClick);
@@ -32,23 +35,41 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   button.tick();
+  led.update();
 
   delay(10);
 }
 
-void tuyaIoTEventCallback(tuya_event_msg_t *e)
+void tuyaIoTEventCallback(tuya_event_msg_t *event)
 {
-  tuya_event_id_t event_id = e->id;
+  int ledState = 0;
+
+  tuya_event_id_t event_id = TuyaIoT.getEventId(event);
 
   switch (event_id) {
+    case TUYA_EVENT_BIND_START: {
+      led.blink(500);
+    } break;
+    case TUYA_EVENT_ACTIVATE_SUCCESSED: {
+      led.off();
+    } break;
+    case TUYA_EVENT_MQTT_CONNECTED: {
+      // Update all DP
+      Serial.println("---> TUYA_EVENT_MQTT_CONNECTED");
+      uint8_t ledState = led.getState();
+      TuyaIoT.write(DPID_SWITCH, ledState);
+    } break;
+    case TUYA_EVENT_TIMESTAMP_SYNC: {
+      tal_time_set_posix(event->value.asInteger, 1);
+    } break;
     case TUYA_EVENT_DP_RECEIVE_OBJ: {
-      uint16_t dpNum = TuyaIoT.getEventDpNum(e);
+      uint16_t dpNum = TuyaIoT.getEventDpNum(event);
       for (uint16_t i = 0; i < dpNum; i++) {
-        uint8_t dpid = TuyaIoT.getEventDpId(e, i);
+        uint8_t dpid = TuyaIoT.getEventDpId(event, i);
         switch (dpid) {
           case DPID_SWITCH: {
-            ledState = TuyaIoT.readBool(e, DPID_SWITCH);
-            digitalWrite(ledPin, ledState);
+            ledState = TuyaIoT.readBool(event, DPID_SWITCH);
+            led.setState(ledState);
             TuyaIoT.write(DPID_SWITCH, ledState);
           } break;
           default : break;
@@ -62,13 +83,13 @@ void tuyaIoTEventCallback(tuya_event_msg_t *e)
 void buttonClick()
 {
   Serial.println("Button clicked");
-  ledState = (ledState == LOW) ? (HIGH) : (LOW);
-  digitalWrite(ledPin, ledState);
+  uint8_t ledState = led.getState();
+  Serial.print("Upload DPID_SWITCH: "); Serial.println(ledState);
   TuyaIoT.write(DPID_SWITCH, ledState);
 }
 
 void buttonLongPressStart()
 {
-  Serial.println("Button long press");
+  Serial.println("Button long press, remove IoT device.");
   TuyaIoT.remove();
 }
