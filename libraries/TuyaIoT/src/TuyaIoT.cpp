@@ -4,7 +4,13 @@
 #include "TuyaIoT.h"
 #include "ArduinoTuyaIoTClient.h"
 
+extern "C" {
+#include <string.h>
+
 #include "tuya_iot_dp.h"
+}
+
+
 
 /******************************************************************************
  * GLOBAL VARIABLES
@@ -68,140 +74,61 @@ void TuyaIoTCloudClass::begin(const char *pid, const char *version, const char *
   app_iot_task_start(this->_pid, this->_version);
 }
 
-int TuyaIoTCloudClass::write(uint8_t dpid, dp_prop_tp_t type, dp_value_t value, TIME_T timestamp)
+int TuyaIoTCloudClass::objWrite(uint8_t dpid, void* value, TIME_T timestamp)
 {
   dp_obj_t dpObj;
+
+  memset(&dpObj, 0, sizeof(dp_obj_t));
+
+  dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
+  if (dpNode == NULL) {
+    PR_ERR("dpid %d not found", dpid);
+    return OPRT_COM_ERROR;
+  }
+
+  if (T_OBJ != dpNode->desc.type) {
+    PR_ERR("dpid %d not object type", dpid);
+    return OPRT_NOT_SUPPORTED;
+  }
+
+  // dpid
   dpObj.id = dpid;
-  dpObj.type = type;
-  dpObj.value = value;
+  // type
+  dpObj.type = dpNode->desc.prop_tp;
+  // timestamp
   dpObj.time_stamp = timestamp;
-
-  return tuya_iot_dp_obj_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, &dpObj, 1, 0);
-}
-
-int TuyaIoTCloudClass::write(uint8_t dpid, bool value)
-{
-  dp_prop_tp_t dpType = PROP_BOOL;
-  dp_value_t dpValue;
-
-  // find dp type
-  dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
-  if (dpNode == NULL) {
-    PR_ERR("dpid %d not found", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  if (PROP_BOOL != dpNode->desc.prop_tp) {
-    PR_ERR("dpid %d type is not bool", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  dpValue.dp_bool = value;
-
-  return write(dpid, dpType, dpValue, 0);
-}
-
-int TuyaIoTCloudClass::write(uint8_t dpid, int value)
-{
-  dp_prop_tp_t dpType;
-  dp_value_t dpValue;
-
-  // find dp type
-  dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
-  if (dpNode == NULL) {
-    PR_ERR("dpid %d not found", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  dpType = dpNode->desc.prop_tp;
-
-  switch (dpType) {
-    case PROP_BOOL:
-      dpValue.dp_bool = value;
-    break;
-    case PROP_VALUE:
-      dpValue.dp_value = value;
-      break;
-    case PROP_ENUM:
-      dpValue.dp_enum = value;
-      break;
-    case PROP_BITMAP:
-      dpValue.dp_bitmap = value;
-      break;
-    default:
-      PR_ERR("The data type (int) is not supported, dpid %d type %d  ", dpid, dpType);
+  // value
+  switch (dpNode->desc.prop_tp) {
+    case (PROP_STR) : {
+      dpObj.value.dp_str = reinterpret_cast<char *>(value);
+    } break;
+    case PROP_VALUE:{
+      dpObj.value.dp_value = *static_cast<int *>(value);
+    } break;
+    case PROP_ENUM:{
+      dpObj.value.dp_enum = *static_cast<uint32_t *>(value);
+    } break;
+    case PROP_BITMAP:{
+      dpObj.value.dp_bitmap = *static_cast<uint32_t *>(value);
+    } break;
+    case PROP_BOOL:{
+      dpObj.value.dp_bool = *static_cast<bool *>(value);
+    } break;
+    default:{
+      PR_ERR("The data type (void *) is not supported, dpid %d type %d  ", dpid, dpNode->desc.prop_tp);
       return OPRT_COM_ERROR;
+    }
   }
 
-  return write(dpid, dpType, dpValue, 0);
+  return tuya_iot_dp_obj_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, &dpObj, 1, timestamp);;
 }
 
-int TuyaIoTCloudClass::write(uint8_t dpid, uint32_t value)
-{
-  dp_prop_tp_t dpType;
-  dp_value_t dpValue;
-
-  // find dp type
-  dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
-  if (dpNode == NULL) {
-    PR_ERR("dpid %d not found", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  dpType = dpNode->desc.prop_tp;
-
-  switch (dpType) {
-    case PROP_BOOL:
-      dpValue.dp_bool = value;
-    break;
-    case PROP_VALUE:
-      dpValue.dp_value = value;
-      break;
-    case PROP_ENUM:
-      dpValue.dp_enum = value;
-      break;
-    case PROP_BITMAP:
-      dpValue.dp_bitmap = value;
-      break;
-    default:
-      PR_ERR("The data type (uint32_t) is not supported, dpid %d type %d  ", dpid, dpType);
-      return OPRT_COM_ERROR;
-  }
-
-  return write(dpid, dpType, dpValue, 0);
-}
-
-int TuyaIoTCloudClass::write(uint8_t dpid, char* value)
-{
-  dp_prop_tp_t dpType;
-  dp_value_t dpValue;
-
-  // find dp type
-  dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
-  if (dpNode == NULL) {
-    PR_ERR("dpid %d not found", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  if (PROP_STR != dpNode->desc.prop_tp) {
-    PR_ERR("dpid %d type is not string", dpid);
-    return OPRT_COM_ERROR;
-  }
-
-  dpType = dpNode->desc.prop_tp;
-  dpValue.dp_str = value;
-
-  return write(dpid, dpType, dpValue, 0);
-}
-
-int TuyaIoTCloudClass::write(uint8_t dpid, void* value, uint16_t len)
+int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint32_t timeout)
 {
   int rt = OPRT_OK;
 
-  dp_prop_tp_t dpType;
-  dp_value_t dpValue;
-
   dp_raw_t *dpRaw = NULL;
+  size_t mallocSize = 0;
 
   dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
   if (dpNode == NULL) {
@@ -209,52 +136,27 @@ int TuyaIoTCloudClass::write(uint8_t dpid, void* value, uint16_t len)
     return OPRT_COM_ERROR;
   }
 
-  if (T_OBJ == dpNode->desc.type) { // obj dp upload
-    switch (dpNode->desc.prop_tp) {
-      case PROP_STR:{
-        dpType = PROP_STR;
-        dpValue.dp_str = (char *)value;
-      } break;
-      case PROP_VALUE:{
-        dpType = PROP_VALUE;
-        dpValue.dp_value = *(int *)value;
-      } break;
-      case PROP_ENUM:{
-        dpType = PROP_ENUM;
-        dpValue.dp_enum = *(uint32_t *)value;
-      } break;
-      case PROP_BITMAP:{
-        dpType = PROP_BITMAP;
-        dpValue.dp_bitmap = *(uint32_t *)value;
-      } break;
-      case PROP_BOOL:{
-        dpType = PROP_BOOL;
-        dpValue.dp_bool = *(bool *)value;
-      } break;
-      default:{
-        PR_ERR("The data type (void *) is not supported, dpid %d type %d  ", dpid, dpNode->desc.prop_tp);
-        return OPRT_COM_ERROR;
-      }
-    }
-    rt = write(dpid, dpType, dpValue, 0);
-  } else if (T_RAW == dpNode->desc.type) { // raw dp upload
-    dpRaw = (dp_raw_t *)tal_malloc(sizeof(dp_raw_t) + len);
-    if (dpRaw == NULL) {
-      PR_ERR("malloc failed");
-      return OPRT_MALLOC_FAILED;
-    }
-
-    dpRaw->id = dpid;
-    dpRaw->len = len;
-    memcpy(dpRaw->data, value, len);
-    rt = tuya_iot_dp_raw_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, dpRaw, 3);
-
-    tal_free(dpRaw);
-    dpRaw = NULL;
-  } else {
-    PR_ERR("The data type (void *) is not supported, dpid %d type %d  ", dpid, dpNode->desc.type);
+  if (T_RAW != dpNode->desc.type) {
+    PR_ERR("dpid %d not raw type", dpid);
     return OPRT_NOT_SUPPORTED;
   }
+
+  mallocSize = sizeof(dp_raw_t) + len;
+  dpRaw = (dp_raw_t *)tal_malloc(mallocSize);
+  if (dpRaw == NULL) {
+    PR_ERR("malloc failed");
+    return OPRT_MALLOC_FAILED;
+  }
+  memset(dpRaw, 0, mallocSize);
+
+  dpRaw->id = dpid;
+  dpRaw->len = len;
+  memcpy(dpRaw->data, value, len);
+
+  rt = tuya_iot_dp_raw_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, dpRaw, timeout);
+
+  tal_free(dpRaw);
+  dpRaw = NULL;
 
   return rt;
 }

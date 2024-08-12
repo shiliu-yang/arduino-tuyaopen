@@ -5,7 +5,11 @@
  * INCLUDE
  ******************************************************************************/
 #include <Arduino.h>
+
+extern "C" {
+#include "tuya_cloud_types.h"
 #include "tuya_iot.h"
+}
 
 /******************************************************************************
  * CONSTANTS
@@ -33,12 +37,24 @@ public:
 
   void setEventCallback(void (*callback)(tuya_event_msg_t* event));
 
-  int write(uint8_t dpid, dp_prop_tp_t type, dp_value_t value, TIME_T timestamp);
-  int write(uint8_t dpid, bool value);
-  int write(uint8_t dpid, int value);
-  int write(uint8_t dpid, uint32_t value);
-  int write(uint8_t dpid, char* value);
-  int write(uint8_t dpid, void* value, uint16_t len);
+  // obj dp write
+  int objWrite(uint8_t dpid, void* value, TIME_T timestamp = 0);
+
+  int write(uint8_t dpid, String value, TIME_T timestamp = 0) {
+    return objWrite(dpid, reinterpret_cast<void*>(const_cast<char*>(value.c_str())), timestamp);
+  }
+
+  template <typename T>
+  int write(uint8_t dpid, T value, TIME_T timestamp = 0) {
+    return objWrite(dpid, static_cast<void *>(&value), timestamp);
+  }
+
+  // raw dp write
+  int rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint32_t timeout = 3);
+
+  int write(uint8_t dpid, uint8_t* value, uint16_t len, uint32_t timeout = 3) {
+    return rawWrite(dpid, value, len, timeout);
+  }
 
   // event
   tuya_event_id_t getEventId(tuya_event_msg_t* event);
