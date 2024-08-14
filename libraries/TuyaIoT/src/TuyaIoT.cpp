@@ -130,6 +130,8 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
   dp_raw_t *dpRaw = NULL;
   size_t mallocSize = 0;
 
+  PR_DEBUG("rawWrite");
+
   dp_node_t *dpNode = dp_node_find_by_devid(ArduinoIoTClient.activate.devid, dpid);
   if (dpNode == NULL) {
     PR_ERR("dpid %d not found", dpid);
@@ -149,6 +151,8 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
   }
   memset(dpRaw, 0, mallocSize);
 
+  PR_HEXDUMP_DEBUG("rawWrite", value, len);
+
   dpRaw->id = dpid;
   dpRaw->len = len;
   memcpy(dpRaw->data, value, len);
@@ -161,11 +165,79 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
   return rt;
 }
 
-tuya_event_id_t TuyaIoTCloudClass::getEventId(tuya_event_msg_t* event)
+int TuyaIoTCloudClass::objRead(tuya_event_msg_t* event, uint8_t dpid, dp_prop_tp_t &type, dp_value_t &value)
+{
+  int rt = OPRT_OK;
+
+  if (NULL == event) {
+    PR_ERR("event is NULL");
+    return OPRT_INVALID_PARM;
+  }
+
+  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
+    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
+    return OPRT_NOT_SUPPORTED;
+  }
+
+  dp_obj_recv_t *dpObj = event->value.dpobj;
+  dp_obj_t *p = NULL;
+
+  // find dp
+  for (int i = 0; i < dpObj->dpscnt; i++) {
+    if (dpid == dpObj->dps[i].id) {
+      p = &dpObj->dps[i];
+      break;
+    }
+  }
+
+  if (!p) {
+    PR_ERR("Not find dp: %d", dpid);
+    return OPRT_COM_ERROR;
+  }
+
+  type = p->type;
+  value = p->value;
+
+  return rt;
+}
+
+int TuyaIoTCloudClass::read(tuya_event_msg_t* event, uint8_t dpid, uint8_t*& value, uint16_t& len)
+{
+  int rt = OPRT_OK;
+
+  if (NULL == event) {
+    PR_ERR("event is NULL");
+    return OPRT_INVALID_PARM;
+  }
+
+  if (TUYA_EVENT_DP_RECEIVE_RAW != event->id) {
+    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_RAW");
+    return OPRT_NOT_SUPPORTED;
+  }
+
+  dp_raw_recv_t *dpraw = event->value.dpraw;
+  if (NULL == dpraw) {
+    PR_ERR("dpraw is null");
+    return OPRT_COM_ERROR;
+  }
+
+  if (dpid != dpraw->dp.id) {
+    PR_ERR("dpid not match");
+    return OPRT_INVALID_PARM;
+  }
+
+  value = dpraw->dp.data;
+  len = dpraw->dp.len;
+
+  return rt;
+}
+
+tuya_event_id_t TuyaIoTCloudClass::eventGetId(tuya_event_msg_t* event)
 {
   return event->id;
 }
-uint16_t TuyaIoTCloudClass::getEventDpNum(tuya_event_msg_t* event)
+
+uint16_t TuyaIoTCloudClass::eventGetDpNum(tuya_event_msg_t* event)
 {
   if (NULL == event) {
     PR_ERR("event is NULL");
@@ -180,7 +252,7 @@ uint16_t TuyaIoTCloudClass::getEventDpNum(tuya_event_msg_t* event)
   return event->value.dpobj->dpscnt;
 }
 
-uint8_t TuyaIoTCloudClass::getEventDpId(tuya_event_msg_t* event, uint16_t index)
+uint8_t TuyaIoTCloudClass::eventGetDpId(tuya_event_msg_t* event, uint16_t index)
 {
   if (NULL == event) {
     PR_ERR("event is NULL");
@@ -193,180 +265,6 @@ uint8_t TuyaIoTCloudClass::getEventDpId(tuya_event_msg_t* event, uint16_t index)
   }
 
   return event->value.dpobj->dps[index].id;
-}
-
-bool TuyaIoTCloudClass::readBool(tuya_event_msg_t* event, uint8_t dpid)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return false;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
-    return false;
-  }
-
-  dp_obj_recv_t *dpObj = event->value.dpobj;
-
-  for (int i = 0; i < dpObj->dpscnt; i++) {
-    if (dpid == dpObj->dps[i].id) {
-      if (PROP_BOOL != dpObj->dps[i].type) {
-        PR_ERR("dpid %d type is not bool", dpid);
-        return false;
-      } else {
-        return dpObj->dps[i].value.dp_bool;
-      }
-    }
-  }
-
-  PR_ERR("dpid %d not found", dpid);
-  return false;
-}
-
-int TuyaIoTCloudClass::readValue(tuya_event_msg_t* event, uint8_t dpid)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return 0;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
-    return 0;
-  }
-
-  dp_obj_recv_t *dpObj = event->value.dpobj;
-
-  for (int i = 0; i < dpObj->dpscnt; i++) {
-    if (dpid == dpObj->dps[i].id) {
-      if (PROP_VALUE != dpObj->dps[i].type) {
-        PR_ERR("dpid %d type is not value", dpid);
-        return 0;
-      } else {
-        return dpObj->dps[i].value.dp_value;
-      }
-    }
-  }
-
-  PR_ERR("dpid %d not found", dpid);
-  return 0;
-}
-
-uint32_t TuyaIoTCloudClass::readEnum(tuya_event_msg_t* event, uint8_t dpid)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return 0;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
-    return 0;
-  }
-
-  dp_obj_recv_t *dpObj = event->value.dpobj;
-
-  for (int i = 0; i < dpObj->dpscnt; i++) {
-    if (dpid == dpObj->dps[i].id) {
-      if (PROP_ENUM != dpObj->dps[i].type) {
-        PR_ERR("dpid %d type is not enum", dpid);
-        return 0;
-      } else {
-        return dpObj->dps[i].value.dp_enum;
-      }
-    }
-  }
-
-  PR_ERR("dpid %d not found", dpid);
-  return 0;
-}
-
-char* TuyaIoTCloudClass::readString(tuya_event_msg_t* event, uint8_t dpid)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return NULL;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
-    return NULL;
-  }
-
-  dp_obj_recv_t *dpObj = event->value.dpobj;
-
-  for (int i = 0; i < dpObj->dpscnt; i++) {
-    if (dpid == dpObj->dps[i].id) {
-      if (PROP_STR != dpObj->dps[i].type) {
-        PR_ERR("dpid %d type is not string", dpid);
-        return NULL;
-      } else {
-        return dpObj->dps[i].value.dp_str;
-      }
-    }
-  }
-
-  PR_ERR("dpid %d not found", dpid);
-  return NULL;
-}
-
-uint32_t TuyaIoTCloudClass::readBitmap(tuya_event_msg_t* event, uint8_t dpid)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return 0;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_OBJ != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_OBJ");
-    return 0;
-  }
-
-  dp_obj_recv_t *dpObj = event->value.dpobj;
-
-  for (int i = 0; i < dpObj->dpscnt; i++) {
-    if (dpid == dpObj->dps[i].id) {
-      if (PROP_BITMAP != dpObj->dps[i].type) {
-        PR_ERR("dpid %d type is not bitmap", dpid);
-        return 0;
-      } else {
-        return dpObj->dps[i].value.dp_bitmap;
-      }
-    }
-  }
-
-  PR_ERR("dpid %d not found", dpid);
-  return 0;
-}
-
-uint8_t* TuyaIoTCloudClass::readRaw(tuya_event_msg_t* event, uint8_t dpid, uint16_t* len)
-{
-  if (NULL == event) {
-    PR_ERR("event is NULL");
-    return NULL;
-  }
-
-  if (NULL == len) {
-    PR_ERR("len is NULL");
-    return NULL;
-  }
-
-  if (TUYA_EVENT_DP_RECEIVE_RAW != event->id) {
-    PR_ERR("event id is not TUYA_EVENT_DP_RECEIVE_RAW");
-    return NULL;
-  }
-
-  dp_raw_recv_t *dpRaw = event->value.dpraw;
-
-  if (dpid != dpRaw->dp.id) {
-    PR_ERR("dpid %d not found", dpid);
-    return NULL;
-  }
-
-  *len = dpRaw->dp.len;
-
-  return dpRaw->dp.data;
 }
 
 int TuyaIoTCloudClass::remove(void)
