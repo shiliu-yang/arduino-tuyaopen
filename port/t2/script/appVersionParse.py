@@ -24,7 +24,7 @@ def appVersionParse(filePath):
     try:
         with open(filePath, 'r') as file:
             data = json.load(file)
-            version = data.get("appVersion", defaultVension)
+            version = data.get("PROJECT_VERSION", defaultVension)
             
             # Validate the version format
             if not re.match(r'^\d+\.\d+\.\d+$', version):
