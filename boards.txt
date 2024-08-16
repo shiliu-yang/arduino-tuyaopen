@@ -62,6 +62,8 @@ t2.compiler.extend.cmd.w={python3.cmd.w} -u {compiler.port.path}script/extend.py
 t2.compiler.extend.cmd.l={python3.cmd.l} {compiler.port.path}script/extend.py --compiler-path "{compiler.path}" --port-path {runtime.platform.path}/port/t2/ --output-path "{build.path}" --output-name "{build.project_name}"
 t2.compiler.extend.cmd.m=echo "TODO"
 
+t2.advanced_size.cmd={python3.cmd.l} {compiler.port.path}script/advancedSize.py --tuya-tmp-path {build.path}/tuyaTmp/ --sketch-name {build.project_name}
+
 # export compiled binary
 t2.export.binary.cmd.w={python3.cmd.w} -u {compiler.port.path}script/exportBinary.py --build-path {build.path} --sketch-path {sketch_path} --sketch-name {build.project_name}
 t2.export.binary.cmd.l={python3.cmd.l} {compiler.port.path}script/exportBinary.py --build-path {build.path} --sketch-path {sketch_path} --sketch-name {build.project_name}
