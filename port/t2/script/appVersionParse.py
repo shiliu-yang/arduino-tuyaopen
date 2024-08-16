@@ -48,7 +48,7 @@ def appVersionWrite(jsonFile, outputFile):
             return
 
     # Prepare the version string with the required format and a newline at the end
-    versionStr = '-DUSER_SW_VER=\\\"' + version + '\\\"\n'
+    versionStr = '-DPROJECT_VERSION=\\\"' + version + '\\\"\n'
 
     # Write the version number to the file
     try:
