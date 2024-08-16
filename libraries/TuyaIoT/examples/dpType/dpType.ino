@@ -22,7 +22,7 @@ void setup() {
   button.attachLongPressStart(buttonLongPressStart);
 
   TuyaIoT.setEventCallback(tuyaIoTEventCallback);
-  TuyaIoT.setLicense("uuidc0ce6be00a118b8b", "nuoIWlGJAppAbPX5ONjc8hmVHsPNoCgd");
+  TuyaIoT.setLicense("uuidxxxxxxxxxxxxxxxx", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
   // The "PROJECT_VERSION" comes from the "PROJECT_VERSION" field in "appConfig.json"
   TuyaIoT.begin("2avicuxv6zgeiquf", PROJECT_VERSION);
