@@ -1,0 +1,13 @@
+-c
+-g
+-std=c++11
+-mcpu=cortex-m33+nodsp
+-mfpu=fpv5-sp-d16
+-mfloat-abi=hard
+-mcmse
+-ffunction-sections
+-fsigned-char
+-fdata-sections
+-fno-strict-aliasing
+-Wl,--gc-sections
+-nostdlib

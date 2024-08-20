@@ -23,7 +23,7 @@ recipe.S.o.pattern="{compiler.S.cmd}" @{compiler.S.flags} {appBuild.flags} -DARD
 recipe.ar.pattern="{compiler.ar.cmd}" @{compiler.ar.flags} "{archive_file_path}" "{object_file}"
 
 ## combine
-recipe.c.combine.pattern="{compiler.combine.cmd}" "@{compiler.combine.flags}" {object_files} -L{compiler.libs.path} -Wl,--start-group @{compiler.libs.flags} "{archive_file_path}" -Wl,--end-group {ld_scripts.flags}
+recipe.c.combine.pattern="{compiler.combine.cmd}" "@{compiler.combine.flags}" {object_files} {libs.files} {ld_scripts.flags}
 
 ## pack
 recipe.hooks.linking.postlink.1.pattern.windows={compiler.extend.cmd.w}
