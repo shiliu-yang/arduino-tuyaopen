@@ -138,8 +138,8 @@ t3.prebuild.cmd.l=echo "TODO"
 t3.prebuild.cmd.m=echo "TODO"
 
 # extend
-t3.compiler.extend.cmd.w=echo "TODO"
-t3.compiler.extend.cmd.l=echo "TODO"
+t3.compiler.extend.cmd.w={python3.cmd.w} {compiler.port.path}script/extend.py --compiler-path "{compiler.path}" --port-path {runtime.platform.path}/port/t3/ --output-path "{build.path}" --output-name "{build.project_name}"
+t3.compiler.extend.cmd.l={python3.cmd.l} {compiler.port.path}script/extend.py --compiler-path "{compiler.path}" --port-path {runtime.platform.path}/port/t3/ --output-path "{build.path}" --output-name "{build.project_name}"
 t3.compiler.extend.cmd.m=echo "TODO"
 
 # export compiled binary
