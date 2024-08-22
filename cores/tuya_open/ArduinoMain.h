@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void ArduinoThread(void *arg);
+void ArduinoMain(void);
 
 #ifdef __cplusplus
 }

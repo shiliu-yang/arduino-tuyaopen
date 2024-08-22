@@ -11,7 +11,6 @@
 
 extern "C" {
 #include "tuya_iot_config.h"
-
 #include "tal_api.h"
 }
 
@@ -38,7 +37,7 @@ extern "C" {
 ***********************function define**********************
 ***********************************************************/
 
-extern "C" void ArduinoThread(void *arg)
+extern "C" void ArduinoMain(void)
 {
   setup();
 

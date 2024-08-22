@@ -25,6 +25,10 @@
 #include "lwip_init.h"
 #endif
 
+#if defined(ARDUINO_TUYA_T3)
+#include "tkl_uart.h"
+#include <components/system.h>
+#endif
 
 /***********************************************************
 ************************macro define************************
@@ -83,13 +87,36 @@ void app_open_sdk_init(void)
   tal_wifi_set_country_code("CN");
 }
 
+static void ArduinoThread(void *arg)
+{
+
+#if defined(ARDUINO_TUYA_T2)
+  // wait rf cali
+  extern char get_rx2_flag(void);
+  while (get_rx2_flag() == 0) {
+    tal_system_sleep(1);
+  }
+  // deinit t2 uart
+  tkl_uart_deinit(TUYA_UART_NUM_0);
+  tkl_uart_deinit(TUYA_UART_NUM_1);
+#endif // defined(ARDUINO_TUYA_T2)
+
+#if defined(ARDUINO_TUYA_T3)
+  bk_set_printf_port(0); // use uart0(Serial) as log ouput
+  tkl_uart_deinit(TUYA_UART_NUM_0);
+  tkl_uart_deinit(TUYA_UART_NUM_1);
+#endif
+
+  app_open_sdk_init();
+
+  ArduinoMain();
+}
+
 void tuya_app_main(void)
 {
 #if defined(ARDUINO_TUYA_T2) || defined(ARDUINO_TUYA_T3)
   __asm("BL __libc_init_array");
 #endif
-
-  app_open_sdk_init();
 
   THREAD_CFG_T thrd_param = {1024 * 4, THREAD_PRIO_3, "arduino_thread"};
   tal_thread_create_and_start(&arduino_thrd_hdl, NULL, NULL, ArduinoThread, NULL, &thrd_param);
