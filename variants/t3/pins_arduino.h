@@ -12,35 +12,37 @@ extern "C" {
 // Number of pins defined in PinDescription array
 #define p0  (0u)
 #define p1  (1u)
-#define p6  (6u)
-#define p7  (7u)
-#define p8  (8u)
-#define p9  (9u)
+#define p10 (10u)
+#define p11 (11u)
+#define p12 (12u)
+#define p13 (13u)
 #define p14 (14u)
 #define p15 (15u)
 #define p16 (16u)
 #define p17 (17u)
-#define p20 (20u)
-#define p22 (22u)
-#define p23 (23u)
+#define p18 (18u)
+#define p19 (19u)
 #define p24 (24u)
-#define p26 (26u)
+#define p25 (25u)
 #define p28 (28u)
+#define p32 (32u)
+#define p34 (34u)
+#define p36 (36u)
+#define p41 (41u)
+#define p40 (40u)
+#define p48 (48u)
 
-#define LED_BUILTIN     p26
-#define BUTTON_BUILTIN  p7
+static const uint8_t A0 = (25u);
+static const uint8_t A1 = (24u);
+static const uint8_t A2 = (28u);
+static const uint8_t A3 = (12u);
+static const uint8_t A4 = (13u);
 
-static const uint8_t A0 = (23u);
-static const uint8_t A1 = (22u);
-static const uint8_t A2 = (24u);
-static const uint8_t A3 = (26u);
-static const uint8_t A4 = (28u);
-
-static const uint8_t D0 = (6u);
-static const uint8_t D1 = (7u);
-static const uint8_t D2 = (8u);
-static const uint8_t D3 = (24u);
-static const uint8_t D4 = (26u);
+static const uint8_t D0 = (18u);
+static const uint8_t D1 = (24u);
+static const uint8_t D2 = (32u);
+static const uint8_t D3 = (34u);
+static const uint8_t D4 = (36u);
 
 // uart
 static const uint8_t defaultSerial = 0;
