@@ -10,8 +10,6 @@ namespace arduino {
 
 #define OPEN_SDK_LOG_BUFFER_SIZE 1024
 
-
-
 class LogClass {
 public:
   enum LogLevel {
