@@ -24,9 +24,18 @@ void TFT_SPI::begin(void)
   _driver->init(&SPI);
 }
 
+void TFT_SPI::end(void)
+{
+  if (_driver == nullptr) {
+    return;
+  }
+
+  _driver->end();
+}
+
 void TFT_SPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 {
-
+  _driver->draw(x, y, x, y, &color);
 }
 
 int16_t TFT_SPI::width(void)
@@ -47,4 +56,9 @@ uint32_t TFT_SPI::readPixel(int32_t x, int32_t y)
 void TFT_SPI::fillScreen(uint32_t color)
 {
   _driver->fillScreen(color);
+}
+
+void TFT_SPI::drawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color)
+{
+  _driver->draw(xb, yb, xe, ye, color);
 }

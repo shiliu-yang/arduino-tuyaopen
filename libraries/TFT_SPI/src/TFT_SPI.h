@@ -15,8 +15,12 @@ public:
     ~TFT_SPI();
 
     void begin(void);
+    void end(void);
 
     void drawPixel(int32_t x, int32_t y, uint32_t color);
+    void drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color);
+
+    void drawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color);
 
     int16_t width(void);
     int16_t height(void);

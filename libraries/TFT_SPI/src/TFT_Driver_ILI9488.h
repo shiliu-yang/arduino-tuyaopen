@@ -8,11 +8,15 @@ extern "C" {
 #include "tal_log.h"
 }
 
-#define SPI_FREQ 8000000
+#define SPI_FREQ 30000000
+
+#define TFT_DRIVER_ID_ILI9488 0
 
 class TFT_Driver_ILI9488 : public TFT_SPI_Driver
 {
 private:
+  uint32_t _driverId = TFT_DRIVER_ID_ILI9488;
+
   /* pin */
   uint8_t _rstPin = 0;
   uint8_t _dcPin = 0;
@@ -118,9 +122,7 @@ public:
     delay(10);
 
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
-    delay(10);
 
-#if 0
     writeCommand(0xE0); // Positive Gamma Control
     writeData(0x00);
     writeData(0x03);
@@ -172,6 +174,7 @@ public:
 
     writeCommand(0x3A); // Pixel Interface Format
     writeData(0x66);  // 18-bit colour for SPI
+    // writeData(0x55);  // 16-bit colour for SPI
 
     writeCommand(0xB0); // Interface Mode Control
     writeData(0x00);
@@ -201,112 +204,21 @@ public:
 
     writeCommand(0x29);  //Display on
     delay(25);
-#else
-  writeCommand(0XF7);    	
-  writeData(0xA9); 	
-  writeData(0x51); 	
-  writeData(0x2C); 	
-  writeData(0x82);
 
-  writeCommand(0XEC);    	
-  writeData(0x00); 	
-  writeData(0x02); 	
-  writeData(0x03); 	
-  writeData(0x7A);
-
-  writeCommand(0xC0); 	
-  writeData(0x13); 	
-  writeData(0x13); 	
-
-  writeCommand(0xC1); 	
-  writeData(0x41); 	
-
-  writeCommand(0xC5); 	
-  writeData(0x00); 	
-  writeData(0x28); 	
-  writeData(0x80);
-
-  writeCommand(0xB1);   //Frame rate 70HZ  	
-  writeData(0xB0);
-  writeData(0x11);	
-
-  writeCommand(0xB4); 	
-  writeData(0x02);   	
-
-  writeCommand(0xB6); //RGB/MCU Interface Control	
-  writeData(0x02);   //MCU	
-  writeData(0x22); 
-
-  writeCommand(0xB7); 	
-  writeData(0xc6); 
-
-  writeCommand(0xBE); 	
-  writeData(0x00); 
-  writeData(0x04);	
-
-  writeCommand(0xE9); 	
-  writeData(0x00);
-
-  writeCommand(0xF4); 	
-  writeData(0x00); 
-  writeData(0x00);
-  writeData(0x0f);	
-
-  writeCommand(0xE0); 	
-  writeData(0x00); 	
-  writeData(0x04); 	
-  writeData(0x0E); 	
-  writeData(0x08); 	
-  writeData(0x17); 	
-  writeData(0x0A); 	
-  writeData(0x40); 	
-  writeData(0x79); 	
-  writeData(0x4D); 	
-  writeData(0x07); 	
-  writeData(0x0E); 	
-  writeData(0x0A); 	
-  writeData(0x1A); 	
-  writeData(0x1D); 	
-  writeData(0x0F);  	
-
-  writeCommand(0xE1); 	
-  writeData(0x00); 	
-  writeData(0x1B); 	
-  writeData(0x1F); 	
-  writeData(0x02); 	
-  writeData(0x10); 	
-  writeData(0x05); 	
-  writeData(0x32); 	
-  writeData(0x34); 	
-  writeData(0x43); 	
-  writeData(0x02); 	
-  writeData(0x0A); 	
-  writeData(0x09); 	
-  writeData(0x33); 	
-  writeData(0x37); 	
-  writeData(0x0F); 
-
-
-  writeCommand(0xF4);
-  writeData(0x00);
-  writeData(0x00);
-  writeData(0x0f);
-
-  writeCommand(0x36); 	
-  writeData(0x08); 	
-
-  writeCommand(0x3A);  //Interface Mode Control	
-  writeData(0x66);  //0x66 18bit; 0x55 16bit
-
-  writeCommand(0x11);
-  delay(120);
-  writeCommand(0x29);
-  delay(5);
-#endif
     _spi->endTransaction();
 
     rotate(0);
   }
+
+  void end() override {
+    digitalWrite(_rstPin, LOW);
+    digitalWrite(_dcPin, LOW);
+    digitalWrite(_blPin, LOW);
+
+    _spi->end();
+  }
+
+  uint32_t readId(void) override { return _driverId; }
 
   void rotate(int16_t angle) override {
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
@@ -332,21 +244,17 @@ public:
     _spi->endTransaction();
   }
 
-  void drawPixel(int32_t x, int32_t y, uint32_t color) override {};
   uint32_t readPixel(int32_t x, int32_t y) override { return 0; };
 
   int16_t width(void) override { return _width; };
   int16_t height(void) override { return _hight; };
 
-  void fillScreen(uint32_t color) override {
+  void draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color) override {
 #if 0
-    setWindow(0, 0, _width - 1, _hight - 1);
+    setWindow(xb, yb, xe, ye);
 
-    _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+    size_t bufSize = (xe - xb + 1) * (ye - yb + 1) * 3;
 
-    color = 0x3F000;
-
-    size_t bufSize = _width * _hight * 3;
     uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
     if (pBuf == nullptr) {
       PR_DEBUG("malloc fail, bufSize %d", bufSize);
@@ -355,40 +263,10 @@ public:
     }
     memset(pBuf, 0, bufSize);
 
-    for (int i = 0; i < _width * _hight; i++) {
-      pBuf[i * 3] = ((color >> 12) & 0x3f) << 2;
-      pBuf[i * 3 + 1] = ((color >> 6) & 0x3f) << 2;
-      pBuf[i * 3 + 2] = (color & 0x3f) << 2;
-    }
-
-    _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
-
-    writeCommand(0x2C);
-    writeData(pBuf, bufSize);
-
-    _spi->endTransaction();
-
-    tal_free(pBuf);
-#else
-
-  color = 0x3F000;
-
-  for (int i=0; i<_hight; i++) {
-    setWindow(0, i, _width-1, i);
-
-    size_t bufSize = _width * 3;
-    uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
-    if (pBuf == nullptr) {
-      PR_DEBUG("malloc fail, bufSize %d", bufSize);
-      _spi->endTransaction();
-      return;
-    }
-    memset(pBuf, 0, bufSize);
-
-    for (int j = 0; j < _width; j++) {
-      pBuf[j * 3] = ((color >> 12) & 0x3f) << 2;
-      pBuf[j * 3 + 1] = ((color >> 6) & 0x3f) << 2;
-      pBuf[j * 3 + 2] = (color & 0x3f) << 2;
+    for (int i = 0; i < (xe - xb + 1); i++) {
+      pBuf[i * 3] = (color[i] >> 16) & 0xfc;
+      pBuf[i * 3 + 1] = (color[i] >> 8) & 0xfc;
+      pBuf[i * 3 + 2] = color[i] & 0xfc;
     }
 
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
@@ -399,8 +277,102 @@ public:
     _spi->endTransaction();
     tal_free(pBuf);
     pBuf = nullptr;
+#else
+    for (int i = yb; i <= ye; i++) {
+      setWindow(xb, i, xe, i);
+
+      size_t bufSize = (xe - xb + 1) * 3;
+      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
+      if (pBuf == nullptr) {
+        PR_DEBUG("malloc fail, bufSize %d", bufSize);
+        _spi->endTransaction();
+        return;
+      }
+      memset(pBuf, 0, bufSize);
+
+      for (int j = 0; j < (xe - xb + 1); j++) {
+        pBuf[j * 3] = (color[j] >> 16) & 0xfc;
+        pBuf[j * 3 + 1] = (color[j] >> 8) & 0xfc;
+        pBuf[j * 3 + 2] = color[j] & 0xfc;
+      }
+
+      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+
+      writeCommand(0x2C);
+      writeData(pBuf, bufSize);
+
+      _spi->endTransaction();
+      tal_free(pBuf);
+      pBuf = nullptr;
+    }
+#endif
   }
 
+  void fillScreen(uint32_t color) override {
+#if 0 // 18bit color
+    uint8_t r = (color >> 16) & 0xff;
+    uint8_t g = (color >> 8) & 0xff;
+    uint8_t b = color & 0xff;
+
+    for (int i=0; i<_hight; i++) {
+      setWindow(0, i, _width-1, i);
+
+      size_t bufSize = _width * 3;
+      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
+      if (pBuf == nullptr) {
+        PR_DEBUG("malloc fail, bufSize %d", bufSize);
+        _spi->endTransaction();
+        return;
+      }
+      memset(pBuf, 0, bufSize);
+
+      for (int j = 0; j < _width; j++) {
+        pBuf[j * 3] = r & 0xfc;
+        pBuf[j * 3 + 1] = g & 0xfc;
+        pBuf[j * 3 + 2] = b & 0xfc;
+      }
+
+      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+
+      writeCommand(0x2C);
+      writeData(pBuf, bufSize);
+
+      _spi->endTransaction();
+      tal_free(pBuf);
+      pBuf = nullptr;
+    }
+#else
+    uint8_t r = (color >> 16) & 0xff;
+    uint8_t g = (color >> 8) & 0xff;
+    uint8_t b = color & 0xff;
+
+    for (int i=0; i<_hight; i++) {
+      setWindow(0, i, _width-1, i);
+
+      size_t bufSize = _width * 3;
+      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
+      if (pBuf == nullptr) {
+        PR_DEBUG("malloc fail, bufSize %d", bufSize);
+        _spi->endTransaction();
+        return;
+      }
+      memset(pBuf, 0, bufSize);
+
+      for (int j = 0; j < _width; j++) {
+        pBuf[j * 3] = r;
+        pBuf[j * 3 + 1] = g;
+        pBuf[j * 3 + 2] = b;
+      }
+
+      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+
+      writeCommand(0x2C);
+      writeData(pBuf, bufSize);
+
+      _spi->endTransaction();
+      tal_free(pBuf);
+      pBuf = nullptr;
+    }
 #endif
   }
 };
