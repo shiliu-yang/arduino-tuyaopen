@@ -1,3 +1,6 @@
 [submodule "ArduinoCore-API"]
 	path = ArduinoCore-API
 	url = https://github.com/arduino/ArduinoCore-API.git
+[submodule "libraries/lvgl"]
+	path = libraries/lvgl
+	url = https://github.com/shiliu-yang/lvgl.git
