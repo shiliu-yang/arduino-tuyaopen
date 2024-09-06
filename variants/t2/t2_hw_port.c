@@ -26,15 +26,15 @@ static TUYA_PWM_BASE_CFG_T sgPwmConfig[TUYA_PWM_NUM_MAX] = {
 TUYA_ADC_BASE_CFG_T adcCfgGet(uint8_t pin)
 {
   switch (pin) {
-    case p26:
+    case 26:
       return sgAdcConfig[0];
-    case p24:
+    case 24:
       return sgAdcConfig[1];
-    case p23:
+    case 23:
       return sgAdcConfig[2];
-    case p28:
+    case 28:
       return sgAdcConfig[3];
-    case p22:
+    case 22:
       return sgAdcConfig[4];
     default:
       return sgAdcConfig[5];
@@ -44,15 +44,15 @@ TUYA_ADC_BASE_CFG_T adcCfgGet(uint8_t pin)
 uint8_t adcPinToChannel(uint8_t pin)
 {
   switch (pin) {
-    case p26:
+    case 26:
       return 0;
-    case p24:
+    case 24:
       return 1;
-    case p23:
+    case 23:
       return 2;
-    case p28:
+    case 28:
       return 3;
-    case p22:
+    case 22:
       return 4;
     default:
       return TUYA_ADC_INVALID_VALUE;
@@ -68,15 +68,15 @@ TUYA_ADC_NUM_E adcPinToNum(uint8_t pin)
 TUYA_PWM_NUM_E pwmPinToNum(uint8_t pin)
 {
   switch (pin) {
-    case p6:
+    case 6:
       return TUYA_PWM_NUM_0;
-    case p7:
+    case 7:
       return TUYA_PWM_NUM_1;
-    case p8:
+    case 8:
       return TUYA_PWM_NUM_2;
-    case p24:
+    case 24:
       return TUYA_PWM_NUM_4;
-    case p26:
+    case 26:
       return TUYA_PWM_NUM_5;
     default:
       return TUYA_PWM_NUM_MAX;
@@ -86,15 +86,15 @@ TUYA_PWM_NUM_E pwmPinToNum(uint8_t pin)
 TUYA_PWM_BASE_CFG_T pwmCfgGet(uint8_t pin)
 {
   switch (pin) {
-    case p6:
+    case 6:
       return sgPwmConfig[0];
-    case p7:
+    case 7:
       return sgPwmConfig[1];
-    case p8:
+    case 8:
       return sgPwmConfig[2];
-    case p24:
+    case 24:
       return sgPwmConfig[3];
-    case p26:
+    case 26:
       return sgPwmConfig[4];
     default:
       return sgPwmConfig[5];
