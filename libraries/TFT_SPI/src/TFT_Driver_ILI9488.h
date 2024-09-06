@@ -206,8 +206,6 @@ public:
     delay(25);
 
     _spi->endTransaction();
-
-    rotate(0);
   }
 
   void end() override {
@@ -250,129 +248,42 @@ public:
   int16_t height(void) override { return _hight; };
 
   void draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color) override {
-#if 0
+    uint8_t pBuf[3] = {0};
+
     setWindow(xb, yb, xe, ye);
-
-    size_t bufSize = (xe - xb + 1) * (ye - yb + 1) * 3;
-
-    uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
-    if (pBuf == nullptr) {
-      PR_DEBUG("malloc fail, bufSize %d", bufSize);
-      _spi->endTransaction();
-      return;
-    }
-    memset(pBuf, 0, bufSize);
-
-    for (int i = 0; i < (xe - xb + 1); i++) {
-      pBuf[i * 3] = (color[i] >> 16) & 0xfc;
-      pBuf[i * 3 + 1] = (color[i] >> 8) & 0xfc;
-      pBuf[i * 3 + 2] = color[i] & 0xfc;
-    }
 
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
     writeCommand(0x2C);
-    writeData(pBuf, bufSize);
+
+    for (int i = 0; i < (xe - xb + 1) * (ye - yb + 1); i++) {
+      pBuf[0] = (color[i] >> 16) & 0xfc;
+      pBuf[1] = (color[i] >> 8) & 0xfc;
+      pBuf[2] = color[i] & 0xfc;
+
+      writeData(pBuf, 3);
+    }
 
     _spi->endTransaction();
-    tal_free(pBuf);
-    pBuf = nullptr;
-#else
-    for (int i = yb; i <= ye; i++) {
-      setWindow(xb, i, xe, i);
-
-      size_t bufSize = (xe - xb + 1) * 3;
-      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
-      if (pBuf == nullptr) {
-        PR_DEBUG("malloc fail, bufSize %d", bufSize);
-        _spi->endTransaction();
-        return;
-      }
-      memset(pBuf, 0, bufSize);
-
-      for (int j = 0; j < (xe - xb + 1); j++) {
-        pBuf[j * 3] = (color[j] >> 16) & 0xfc;
-        pBuf[j * 3 + 1] = (color[j] >> 8) & 0xfc;
-        pBuf[j * 3 + 2] = color[j] & 0xfc;
-      }
-
-      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
-
-      writeCommand(0x2C);
-      writeData(pBuf, bufSize);
-
-      _spi->endTransaction();
-      tal_free(pBuf);
-      pBuf = nullptr;
-    }
-#endif
   }
 
   void fillScreen(uint32_t color) override {
-#if 0 // 18bit color
-    uint8_t r = (color >> 16) & 0xff;
-    uint8_t g = (color >> 8) & 0xff;
-    uint8_t b = color & 0xff;
+    uint8_t pBuf[3] = {0};
 
-    for (int i=0; i<_hight; i++) {
-      setWindow(0, i, _width-1, i);
+    setWindow(0, 0, _width - 1, _hight - 1);
 
-      size_t bufSize = _width * 3;
-      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
-      if (pBuf == nullptr) {
-        PR_DEBUG("malloc fail, bufSize %d", bufSize);
-        _spi->endTransaction();
-        return;
-      }
-      memset(pBuf, 0, bufSize);
+    _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
-      for (int j = 0; j < _width; j++) {
-        pBuf[j * 3] = r & 0xfc;
-        pBuf[j * 3 + 1] = g & 0xfc;
-        pBuf[j * 3 + 2] = b & 0xfc;
-      }
+    writeCommand(0x2C);
 
-      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+    for (int i = 0; i < _width * _hight; i++) {
+      pBuf[0] = (color >> 16) & 0xfc;
+      pBuf[1] = (color >> 8) & 0xfc;
+      pBuf[2] = color & 0xfc;
 
-      writeCommand(0x2C);
-      writeData(pBuf, bufSize);
-
-      _spi->endTransaction();
-      tal_free(pBuf);
-      pBuf = nullptr;
+      writeData(pBuf, 3);
     }
-#else
-    uint8_t r = (color >> 16) & 0xff;
-    uint8_t g = (color >> 8) & 0xff;
-    uint8_t b = color & 0xff;
 
-    for (int i=0; i<_hight; i++) {
-      setWindow(0, i, _width-1, i);
-
-      size_t bufSize = _width * 3;
-      uint8_t *pBuf = (uint8_t *)tal_malloc(bufSize);
-      if (pBuf == nullptr) {
-        PR_DEBUG("malloc fail, bufSize %d", bufSize);
-        _spi->endTransaction();
-        return;
-      }
-      memset(pBuf, 0, bufSize);
-
-      for (int j = 0; j < _width; j++) {
-        pBuf[j * 3] = r;
-        pBuf[j * 3 + 1] = g;
-        pBuf[j * 3 + 2] = b;
-      }
-
-      _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
-
-      writeCommand(0x2C);
-      writeData(pBuf, bufSize);
-
-      _spi->endTransaction();
-      tal_free(pBuf);
-      pBuf = nullptr;
-    }
-#endif
+    _spi->endTransaction();
   }
 };

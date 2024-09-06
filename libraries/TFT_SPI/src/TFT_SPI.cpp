@@ -33,6 +33,15 @@ void TFT_SPI::end(void)
   _driver->end();
 }
 
+void TFT_SPI::rotate(int16_t angle)
+{
+  if (_driver == nullptr) {
+    return;
+  }
+
+  _driver->rotate(angle);
+}
+
 void TFT_SPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 {
   _driver->draw(x, y, x, y, &color);

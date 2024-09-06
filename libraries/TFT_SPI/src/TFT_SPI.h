@@ -17,6 +17,8 @@ public:
     void begin(void);
     void end(void);
 
+    void rotate(int16_t angle);
+
     void drawPixel(int32_t x, int32_t y, uint32_t color);
     void drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color);
 
