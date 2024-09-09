@@ -18,6 +18,7 @@ public:
 
     virtual void draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color) = 0;
     virtual void fillScreen(uint32_t color) = 0;
+    virtual void lv_draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t color) = 0;
 
     virtual uint32_t readPixel(int32_t x, int32_t y) = 0;
 

@@ -267,6 +267,26 @@ public:
     _spi->endTransaction();
   }
 
+  void lv_draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t color) override {
+    uint8_t pBuf[3] = {0};
+
+    setWindow(xb, yb, xe, ye);
+
+    pBuf[0] = (color >> 16) & 0xfc;
+    pBuf[1] = (color >> 8) & 0xfc;
+    pBuf[2] = color & 0xfc;
+
+    _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+
+    writeCommand(0x2C);
+
+    for (int i = 0; i < (xe - xb + 1) * (ye - yb + 1); i++) {
+      writeData(pBuf, 3);
+    }
+
+    _spi->endTransaction();
+  }
+
   void fillScreen(uint32_t color) override {
     uint8_t pBuf[3] = {0};
 

@@ -23,6 +23,7 @@ public:
     void drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color);
 
     void drawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t *color);
+    void lvDrawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t color);
 
     int16_t width(void);
     int16_t height(void);
