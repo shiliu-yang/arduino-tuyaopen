@@ -72,7 +72,7 @@ void TFT_SPI::drawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t 
   _driver->draw(xb, yb, xe, ye, color);
 }
 
-void TFT_SPI::lvDrawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint32_t color)
+void TFT_SPI::lvDrawArea(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint16_t *color)
 {
   _driver->lv_draw(xb, yb, xe, ye, color);
 }
