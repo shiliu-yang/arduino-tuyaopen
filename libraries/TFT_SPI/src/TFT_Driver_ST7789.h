@@ -660,7 +660,27 @@ public:
   }
 
   void lv_draw(int32_t xb, int32_t yb, int32_t xe, int32_t ye, uint16_t *color) override {
-    
+    uint8_t pBuf[2] = {0};
+    uint8_t r = 0, g = 0, b = 0;
+
+    setWindow(xb, yb, xe, ye);
+
+    _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+
+    writeCommand(0x2C);
+
+    for (int i = 0; i < (xe - xb + 1) * (ye - yb + 1); i++) {
+      r = (color[i] >> 16) & 0xff;
+      g = (color[i] >> 8) & 0xff;
+      b = color[i] & 0xff;
+
+      // 888 -> 565
+      pBuf[0] = ((r & 0xf8) | (g >> 5));
+      pBuf[1] = (((g & 0x1c) << 3) | (b >> 3));
+      writeData(pBuf, 2);
+    }
+
+    _spi->endTransaction();
   }
 
   void fillScreen(uint32_t color) override {
