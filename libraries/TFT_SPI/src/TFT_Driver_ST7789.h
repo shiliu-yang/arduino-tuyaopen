@@ -8,7 +8,7 @@ extern "C" {
 #include "tal_log.h"
 }
 
-#define SPI_FREQ 8000000
+#define SPI_FREQ (25000000UL)
 
 #define TFT_DRIVER_ID_ST7789 1
 
@@ -107,11 +107,14 @@ public:
     _spi = spi;
 
     pinMode(_rstPin, OUTPUT);
-    pinMode(_dcPin, OUTPUT);
-    pinMode(_blPin, OUTPUT);
-
-    digitalWrite(_dcPin, HIGH);
     digitalWrite(_rstPin, HIGH);
+
+    pinMode(_dcPin, OUTPUT);
+    digitalWrite(_dcPin, HIGH);
+
+    pinMode(_blPin, OUTPUT);
+    digitalWrite(_blPin, LOW);
+
     delay(100);
 
     digitalWrite(_rstPin, LOW);
@@ -119,7 +122,7 @@ public:
     digitalWrite(_rstPin, HIGH);
     delay(100);
 
-#if 0
+#if 1
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
     writeCommand(0x11);
@@ -128,7 +131,7 @@ public:
     writeCommand(0x13);
 
     writeCommand(0x36);
-    writeData(0x00); // 0x00 = RGB, 0x08 = BGR
+    writeData(0x00);
 
     writeCommand(0xB6);
     writeData(0x0A);
@@ -213,13 +216,13 @@ public:
     writeData(0x00);
     writeData(0x00);
     writeData(0x00);
-    writeData(0xEF);    // 239
+    writeData(0xF0);    // 240
 
     writeCommand(0x2B);    // Row address set
     writeData(0x00);
     writeData(0x00);
     writeData(0x01);
-    writeData(0x3F);    // 319
+    writeData(0xF0);    // 240
 
     _spi->endTransaction();
     delay(120);
@@ -229,8 +232,9 @@ public:
     _spi->endTransaction();
     delay(120);
 
-    digitalWrite(_blPin, LOW);
+    digitalWrite(_blPin, HIGH);
 #endif
+
 #if 0
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
@@ -433,23 +437,14 @@ public:
 
     _spi->endTransaction();
 
-    digitalWrite(_blPin, LOW); // TODO
+    digitalWrite(_blPin, HIGH); // TODO
 #endif
 
-#if 0
+#if 1
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
     writeCommand(0x11);
-    delay(480); // todo: 120ms
-
-    writeCommand(0x36);
-    writeData(0x00);
-
-// LCD_WR_REG(0x36);
-// if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x00);
-// else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC0);
-// else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x70);
-// else LCD_WR_DATA8(0xA0);
+    delay(120);
 
     writeCommand(0x3a);
     writeData(0x05);
@@ -537,7 +532,7 @@ public:
 
     _spi->endTransaction();
 
-    digitalWrite(_blPin, LOW); // TODO
+    digitalWrite(_blPin, HIGH); // TODO
 #endif
 
 #if 0
@@ -580,10 +575,10 @@ public:
 
     _spi->endTransaction();
 
-    digitalWrite(_blPin, LOW); // TODO
+    digitalWrite(_blPin, HIGH); // TODO
 #endif
 
-#if 1
+#if 0
     _spi->beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
 
     writeCommand(0x11);
@@ -618,7 +613,7 @@ public:
 
     _spi->endTransaction();
 
-    digitalWrite(_blPin, LOW); // TODO
+    digitalWrite(_blPin, HIGH); // TODO
 #endif
 
   }
