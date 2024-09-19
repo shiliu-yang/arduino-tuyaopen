@@ -8,6 +8,8 @@
 
 #include <type_traits>
 
+#include "TuyaIoTWeather.h"
+
 extern "C" {
 #include "tuya_cloud_types.h"
 #include "tuya_iot.h"
@@ -26,7 +28,7 @@ extern "C" {
 /******************************************************************************
  * CLASS DECLARATION
  ******************************************************************************/
-class TuyaIoTCloudClass {
+class TuyaIoTCloudClass : public TuyaIoTWeatherClass {
 public:
   TuyaIoTCloudClass();
   ~TuyaIoTCloudClass();
@@ -139,6 +141,10 @@ public:
 
   // license
   int readBoardLicense(tuya_iot_license_t* license);
+
+  // device status
+  bool networkCheck(void);
+  bool isActivated(void);
 private:
   char _pid[MAX_LENGTH_PRODUCT_ID+1]  = {0}; // +1 is '\0'
   char _version[MAX_LENGTH_SW_VER+1]  = {0};

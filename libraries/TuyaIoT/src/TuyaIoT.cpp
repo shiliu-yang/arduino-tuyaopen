@@ -277,6 +277,20 @@ int TuyaIoTCloudClass::readBoardLicense(tuya_iot_license_t* license)
   return tuya_iot_license_read(license);
 }
 
+bool TuyaIoTCloudClass::networkCheck(void)
+{
+  if (ArduinoIoTClient.config.network_check && ArduinoIoTClient.config.network_check()) {
+    return true;
+  }
+
+  return false;
+}
+
+bool TuyaIoTCloudClass::isActivated(void)
+{
+  return tuya_iot_activated(&ArduinoIoTClient);
+}
+
 /******************************************************************************
  * PRIVATE MEMBER FUNCTIONS
  ******************************************************************************/
