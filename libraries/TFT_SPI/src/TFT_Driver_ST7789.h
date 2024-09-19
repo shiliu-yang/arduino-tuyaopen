@@ -669,16 +669,7 @@ public:
 
     writeCommand(0x2C);
 
-    for (int i = 0; i < (xe - xb + 1) * (ye - yb + 1); i++) {
-      r = (color[i] >> 16) & 0xff;
-      g = (color[i] >> 8) & 0xff;
-      b = color[i] & 0xff;
-
-      // 888 -> 565
-      pBuf[0] = ((r & 0xf8) | (g >> 5));
-      pBuf[1] = (((g & 0x1c) << 3) | (b >> 3));
-      writeData(pBuf, 2);
-    }
+    writeData((uint8_t *)(color), (xe - xb + 1) * (ye - yb + 1) * 2);
 
     _spi->endTransaction();
   }
