@@ -3,10 +3,9 @@
  ******************************************************************************/
 #include "TuyaIoTWeather.h"
 
-#include "ArduinoTuyaIoTClient.h"
-
 // tuya open sdk
 #include "tal_time_service.h"
+#include "tal_memory.h"
 #include "tal_log.h"
 #include "atop_base.h"
 #include "cJSON.h"
@@ -85,6 +84,65 @@ char* TuyaIoTWeatherClass::_getWeatherCode(uint32_t index)
   return NULL;
 }
 
+int TuyaIoTWeatherClass::_atopWeatherRequest(char* code, atop_base_response_t *response)
+{
+  int rt = OPRT_OK;
+  TIME_T timestamp = 0;
+  char *postData = NULL;
+  int postDataLen = 0;
+  atop_base_request_t atopRequest;
+
+  rt = tal_time_check_time_sync();
+  if (OPRT_OK != rt) {
+    PR_ERR("tal_time_check_time_sync error:%d", rt);
+    return rt;
+  }
+
+  // network check
+  if (!_clientHandle->config.network_check) {
+    PR_ERR("network_check is NULL");
+    return OPRT_COM_ERROR;
+  }
+  if (!_clientHandle->config.network_check()) {
+    PR_ERR("network is not connected");
+    return OPRT_COM_ERROR;
+  }
+
+  timestamp = tal_time_get_posix();
+
+  postDataLen = snprintf(NULL, 0, "{\"codes\":[\"%s\"], \"t\":%d}", code, timestamp);
+  postDataLen++; // add '\0'
+
+  postData = (char *)tal_malloc(postDataLen);
+  if (NULL == postData) {
+    return OPRT_MALLOC_FAILED;
+  }
+  memset(postData, 0, postDataLen);
+
+  snprintf(postData, postDataLen, "{\"codes\":[\"%s\"], \"t\":%d}", code, timestamp);
+  PR_DEBUG("Post: %s", postData);
+
+  memset(&atopRequest, 0, sizeof(atop_base_request_t));
+  atopRequest.devid = _clientHandle->activate.devid;
+  atopRequest.key  = _clientHandle->activate.seckey;
+  atopRequest.path = "/d.json";
+  atopRequest.timestamp = timestamp;
+  atopRequest.api = WEATHER_API;
+  atopRequest.version = API_VERSION;
+  atopRequest.data =  reinterpret_cast<void *>(postData);
+  atopRequest.datalen = strlen(postData);
+
+  rt = atop_base_request(&atopRequest, response);
+  if (OPRT_OK != rt) {
+    PR_ERR("atop_base_request error:%d", rt);
+  }
+
+  tal_free(postData);
+  postData = NULL;
+
+  return rt;
+}
+
 /******************************************************************************
  * CTOR/DTOR
  ******************************************************************************/
@@ -93,48 +151,20 @@ char* TuyaIoTWeatherClass::_getWeatherCode(uint32_t index)
 /******************************************************************************
  * PUBLIC MEMBER FUNCTIONS
  ******************************************************************************/
-String TuyaIoTWeatherClass::getArea(void)
+String TuyaIoTWeatherClass::get(uint32_t index)
 {
+  String value = "";
   int rt = OPRT_OK;
-  String area = "";
-  char requestData[64] = {0};
-
-  atop_base_request_t atopRequest;
   atop_base_response_t response;
+  char* code = NULL;
 
-  tuya_iot_client_t *client = &ArduinoIoTClient;
+  code = _getWeatherCode(index);
 
-  if (OPRT_OK != _allowWeatherUpdate(client)) {
-    PR_ERR("Weather update not allowed");
-    return "";
-  }
-
-  char* code = _getWeatherCode(TW_INDEX_C_AREA);
-  if (NULL == code) {
-    PR_ERR("Weather code not found");
-    return "";
-  }
-
-  TIME_T timestamp = tal_time_get_posix();
-
-  snprintf(requestData, sizeof(requestData), "{\"codes\":[\"%s\"], \"t\":%d}", code, timestamp);
-  PR_DEBUG("Post: %s", requestData);
-
-  memset(&atopRequest, 0, sizeof(atop_base_request_t));
   memset(&response, 0, sizeof(atop_base_response_t));
 
-  atopRequest.devid = client->activate.devid;
-  atopRequest.key  = client->activate.seckey;
-  atopRequest.path = "/d.json";
-  atopRequest.timestamp = timestamp;
-  atopRequest.api = WEATHER_API;
-  atopRequest.version = API_VERSION;
-  atopRequest.data =  reinterpret_cast<void *>(requestData);
-  atopRequest.datalen = strlen(requestData);
-
-  rt = atop_base_request(&atopRequest, &response);
+  rt = _atopWeatherRequest(code, &response);
   if (OPRT_OK != rt) {
-    PR_ERR("atop_base_request error:%d", rt);
+    PR_ERR("atopWeatherRequest error:%d", rt);
     return "";
   }
 
@@ -153,7 +183,7 @@ String TuyaIoTWeatherClass::getArea(void)
 
   atop_base_response_free(&response);
 
-  return area;
+  return value;
 }
 
 /******************************************************************************

@@ -5,6 +5,7 @@
  * INCLUDE
  ******************************************************************************/
 #include <Arduino.h>
+#include "ArduinoTuyaIoTClient.h"
 
 // tuya open sdk
 #include "tuya_iot.h"
@@ -108,12 +109,17 @@ public:
   TuyaIoTWeatherClass() {};
   ~TuyaIoTWeatherClass() {};
 
+  String getCityArea(void);
+
   // city
-  String getArea(void);
+  String get(uint32_t index);
 
 private:
+  tuya_iot_client_t *_clientHandle = &ArduinoIoTClient;
+
   int _allowWeatherUpdate(tuya_iot_client_t *client);
   char* _getWeatherCode(uint32_t index);
+  int _atopWeatherRequest(char* code, atop_base_response_t *response);
 };
 
 #endif // !__TUYA_IOT_WEATHER_H__

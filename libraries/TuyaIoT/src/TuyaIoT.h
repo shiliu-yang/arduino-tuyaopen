@@ -8,8 +8,6 @@
 
 #include <type_traits>
 
-#include "TuyaIoTWeather.h"
-
 extern "C" {
 #include "tuya_cloud_types.h"
 #include "tuya_iot.h"
@@ -28,7 +26,7 @@ extern "C" {
 /******************************************************************************
  * CLASS DECLARATION
  ******************************************************************************/
-class TuyaIoTCloudClass : public TuyaIoTWeatherClass {
+class TuyaIoTCloudClass {
 public:
   TuyaIoTCloudClass();
   ~TuyaIoTCloudClass();
