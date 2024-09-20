@@ -19,6 +19,7 @@ public:
   uint8_t transfer(uint8_t data);
   uint16_t transfer16(uint16_t data);
   void transfer(void *buf, size_t count);
+  void transfer(uint8_t *buf, size_t count);
 
   // Transaction Functions
   void usingInterrupt(int interruptNumber) override { /* noop */ }
@@ -46,6 +47,8 @@ private:
   TUYA_SPI_BASE_CFG_T _cfg;
 
   int _csPin = -1;
+
+  uint8_t _isBeginTransaction = 0;
 };
 
 } // namespace arduino

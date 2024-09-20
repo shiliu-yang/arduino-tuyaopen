@@ -15,7 +15,17 @@ unsigned long millis()
 
 void delay(unsigned long ms)
 {
-    return tal_system_sleep((uint32_t)ms);
+    tal_system_sleep((uint32_t)ms);
+}
+
+void delayMicroseconds(unsigned int us)
+{
+    unsigned int ms = us / 1000;
+
+    // Note: tuya open sdk not support delayMicroseconds
+    ms = (ms == 0) ? 1 : ms;
+
+    tal_system_sleep((uint32_t)ms);
 }
 
 void yield(void)

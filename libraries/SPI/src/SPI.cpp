@@ -79,6 +79,11 @@ void SPIClassTuyaOpen::beginTransaction(SPISettings settings)
 {
   OPERATE_RET rt = OPRT_OK;
 
+  if (_isBeginTransaction) {
+    return;
+  }
+  _isBeginTransaction = 1;
+
   _cfg.freq_hz = settings.getClockFreq();
 
   switch ( settings.getDataMode() ) {
@@ -111,6 +116,11 @@ void SPIClassTuyaOpen::beginTransaction(SPISettings settings)
 
 void SPIClassTuyaOpen::endTransaction(void)
 {
+  if (!_isBeginTransaction) {
+    return;
+  }
+  _isBeginTransaction = 0;
+
   tkl_spi_deinit(_port);
 
   if (-1 != _csPin) {
@@ -148,6 +158,11 @@ uint16_t SPIClassTuyaOpen::transfer16(uint16_t data)
 void SPIClassTuyaOpen::transfer(void *buf, size_t count)
 {
   tkl_spi_send(_port, buf, count);
+}
+
+void SPIClassTuyaOpen::transfer(uint8_t *buf, size_t count)
+{
+  tkl_spi_send(_port, reinterpret_cast<void *>(buf), count);
 }
 
 SPIClassTuyaOpen SPI(TUYA_SPI_NUM_0);
