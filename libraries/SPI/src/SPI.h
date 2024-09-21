@@ -21,6 +21,9 @@ public:
   void transfer(void *buf, size_t count);
   void transfer(uint8_t *buf, size_t count);
 
+  void send8(uint8_t data);
+  void send16(uint16_t data);
+
   // Transaction Functions
   void usingInterrupt(int interruptNumber) override { /* noop */ }
   void notUsingInterrupt(int interruptNumber) override { /* noop */ }

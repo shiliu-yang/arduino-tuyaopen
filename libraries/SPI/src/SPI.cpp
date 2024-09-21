@@ -165,4 +165,14 @@ void SPIClassTuyaOpen::transfer(uint8_t *buf, size_t count)
   tkl_spi_send(_port, reinterpret_cast<void *>(buf), count);
 }
 
+void SPIClassTuyaOpen::send8(uint8_t data)
+{
+  tkl_spi_send(_port, reinterpret_cast<void *>(&data), 1);
+}
+
+void SPIClassTuyaOpen::send16(uint16_t data)
+{
+  tkl_spi_send(_port, reinterpret_cast<void *>(&data), 2);
+}
+
 SPIClassTuyaOpen SPI(TUYA_SPI_NUM_0);
