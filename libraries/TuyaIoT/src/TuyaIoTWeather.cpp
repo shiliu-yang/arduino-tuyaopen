@@ -110,7 +110,7 @@ int TuyaIoTWeatherClass::_atopWeatherRequest(char* code, atop_base_response_t *r
 
   timestamp = tal_time_get_posix();
 
-  postDataLen = snprintf(NULL, 0, "{\"codes\":[\"%s\"], \"t\":%d}", code, timestamp);
+  postDataLen = snprintf(NULL, 0, "{\"codes\":[%s], \"t\":%d}", code, timestamp);
   postDataLen++; // add '\0'
 
   postData = (char *)tal_malloc(postDataLen);
@@ -119,7 +119,7 @@ int TuyaIoTWeatherClass::_atopWeatherRequest(char* code, atop_base_response_t *r
   }
   memset(postData, 0, postDataLen);
 
-  snprintf(postData, postDataLen, "{\"codes\":[\"%s\"], \"t\":%d}", code, timestamp);
+  snprintf(postData, postDataLen, "{\"codes\":[%s], \"t\":%d}", code, timestamp);
   PR_DEBUG("Post: %s", postData);
 
   memset(&atopRequest, 0, sizeof(atop_base_request_t));
@@ -156,9 +156,10 @@ String TuyaIoTWeatherClass::get(uint32_t index)
   String value = "";
   int rt = OPRT_OK;
   atop_base_response_t response;
-  char* code = NULL;
+  // char* code = "w.temp, w.humidity, w.realFeel, w.pm25, w.thigh, w.tlow, w.date.3, w.currdate";
+  char* code = "\"w.temp\",\"w.humidity\",\"w.realFeel\",\"w.pm25\",\"w.thigh\",\"w.tlow\",\"w.conditionNum\",\"w.currdate\",\"c.city\"";
 
-  code = _getWeatherCode(index);
+  // code = _getWeatherCode(index);
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -176,9 +177,10 @@ String TuyaIoTWeatherClass::get(uint32_t index)
     // if (item) {
     //   area = item->valuestring;
     // }
-    char* value = cJSON_PrintUnformatted(result);
-    PR_DEBUG("result: %s", value);
-    cJSON_free(value);
+    char *result_value = cJSON_PrintUnformatted(result);
+    value = String(result_value);
+    // PR_DEBUG("result: %s", value.c_str());
+    cJSON_free(result_value);
   }
 
   atop_base_response_free(&response);
