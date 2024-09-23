@@ -188,6 +188,48 @@ String TuyaIoTWeatherClass::get(uint32_t index)
   return value;
 }
 
+int TuyaIoTWeatherClass::getTempHighLow(int& high, int& low)
+{
+  int rt = OPRT_OK;
+
+  atop_base_response_t response;
+
+  char* code = "\"w.thigh\",\"w.tlow\",\"w.date.1\"";
+
+  memset(&response, 0, sizeof(atop_base_response_t));
+
+  rt = _atopWeatherRequest(code, &response);
+  if (OPRT_OK != rt) {
+    PR_ERR("atopWeatherRequest error:%d", rt);
+    return rt;
+  }
+
+  PR_DEBUG("response success: %d", response.success);
+
+  if (response.success && response.result) {
+    cJSON *result = response.result;
+    cJSON *dataObj = cJSON_GetObjectItem(result, "data");
+    if (dataObj) {
+      cJSON *item = cJSON_GetObjectItem(dataObj, "w.thigh.0");
+      if (item) {
+        high = item->valueint;
+      }
+      item = cJSON_GetObjectItem(dataObj, "w.tlow.0");
+      if (item) {
+        low = item->valueint;
+      }
+    }
+
+    PR_DEBUG("high: %d, low: %d", high, low);
+  } else {
+    rt = OPRT_COM_ERROR;
+  }
+
+  atop_base_response_free(&response);
+
+  return rt;
+}
+
 /******************************************************************************
  * PRIVATE MEMBER FUNCTIONS
  ******************************************************************************/

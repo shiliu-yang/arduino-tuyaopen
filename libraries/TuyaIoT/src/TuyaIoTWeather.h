@@ -113,6 +113,7 @@ public:
 
   // city
   String get(uint32_t index);
+  int getTempHighLow(int& high, int& low);
 
 private:
   tuya_iot_client_t *_clientHandle = &ArduinoIoTClient;
