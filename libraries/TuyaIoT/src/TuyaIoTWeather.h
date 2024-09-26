@@ -5,46 +5,16 @@
  * INCLUDE
  ******************************************************************************/
 #include <Arduino.h>
-#include "ArduinoTuyaIoTClient.h"
 
+#include <vector>
+
+#include "ArduinoTuyaIoTClient.h"
 // tuya open sdk
 #include "tuya_iot.h"
 
 /******************************************************************************
  * CONSTANTS
  ******************************************************************************/
-// https://developer.tuya.com/en/docs/mcu-standard-protocol/mcusdk-wifi-weather?id=Kd2fvzw7ny80s#title-10-Appendix
-#define TW_INDEX_TEMP         (1)
-#define TW_INDEX_HUMIDITY     (1 << 1)
-#define TW_INDEX_CONDITIONNUM (1 << 2)
-#define TW_INDEX_PRESSURE     (1 << 3)
-#define TW_INDEX_REAL_FEEL    (1 << 4)
-#define TW_INDEX_UVI          (1 << 5)
-#define TW_INDEX_SUNRISE      (1 << 6)
-#define TW_INDEX_SUNSET       (1 << 7)
-#define TW_INDEX_WIND_SPEED   (1 << 8)
-#define TW_INDEX_WIND_DIR     (1 << 9)
-#define TW_INDEX_WIND_LEVEL   (1 << 10)
-#define TW_INDEX_AQI          (1 << 11)
-#define TW_INDEX_RANK         (1 << 12)
-#define TW_INDEX_PM10         (1 << 13)
-#define TW_INDEX_PM25         (1 << 14)
-#define TW_INDEX_O3           (1 << 15)
-#define TW_INDEX_NO2          (1 << 16)
-#define TW_INDEX_CO           (1 << 17)
-#define TW_INDEX_SO2          (1 << 18)
-#define TW_INDEX_THIGH        (1 << 19)
-#define TW_INDEX_TLOW         (1 << 20)
-#define TW_INDEX_DATE_N       (1 << 21)
-#define TW_INDEX_CURRDATE     (1 << 22)
-
-// City
-// https://developer.tuya.com/en/docs/mcu-standard-protocol/mcusdk-wifi-weather?id=Kd2fvzw7ny80s#title-13-Appendix%203%3A%20Weather%20service%20data
-#define TW_INDEX_C_AREA       (1 << 23)
-#define TW_INDEX_C_CITY       (1 << 24)
-#define TW_INDEX_C_PROVINCE   (1 << 25)
-
-
 // Weather data
 // https://developer.tuya.com/en/docs/mcu-standard-protocol/mcusdk-wifi-weather?id=Kd2fvzw7ny80s#title-14-Appendix%204%3A%20Weather%20data%20in%20UTF-8%20encoding
 #define TW_WEATHER_SUNNY                    (120)
@@ -109,18 +79,54 @@ public:
   TuyaIoTWeatherClass() {};
   ~TuyaIoTWeatherClass() {};
 
-  String getCityArea(void);
+  // Get current weather conditions
+  // mbar: atmospheric pressure,  1 mbar = 100 pa = 1 hPa.
+  int getCurrentConditions(int& weather, int &temp, int &humi, int &realFeel, int &mbar, int &uvi);
 
-  // city
-  String get(uint32_t index);
-  int getTempHighLow(int& high, int& low);
+  // Get today's high and low temperatures
+  int getTodayHighLowTemp(int &highTemp, int &lowTemp);
+
+  // Get current wind
+  int getCurrentWind(String &windDir, String &windSpeed);
+  // Get current wind in China, windLevel only supports Mainland China
+  int getCurrentWindCN(String &windDir, String &windSpeed, int &windLevel);
+
+  // Get current sunrise and sunset time
+  int getCurrentSunriseSunsetGMT(String &sunrise, String &sunset); // GMT time
+  int getCurrentSunriseSunsetLocal(String &sunrise, String &sunset); // Local time (with timezone)
+
+  int getCurrentSunriseSunset(String &sunrise, String &sunset) {
+    return getCurrentSunriseSunsetLocal(sunrise, sunset);
+  }
+
+  // Get current AQI
+  int getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, int &pm10, int &o3, int &no2, int &co, int &so2);
+  int getCurrentAQICN(int &aqi, String &rank, int &qualityLevel, int &pm25, int &pm10, int &o3, int &no2, int &co, int &so2); // rank only supports Mainland China
+
+  // Get forecast weather conditions
+  int getForecastConditions(int number, std::vector<int>& weather, std::vector<int>& temp, std::vector<int>& humi, std::vector<int>& uvi, std::vector<int>& mbar);
+  int getForecastConditionsCN(int number, std::vector<int>& weather, std::vector<int>& humi, std::vector<int>& uvi); // Temp, pressure not support forecast in Mainland China
+
+  int getForecastWind(int number, std::vector<String>& windDir, std::vector<String>& windSpeed);
+
+  int getForecastHighLowTemp(int number, std::vector<int>& highTemp, std::vector<int>& lowTemp);
+
+  // Get city information
+  /*
+    If the weather service API returns service city only without any content,
+    it indicates the device does not provide its latitude and longitude, so the request failed.
+    To resolve this issue,
+    you should guide users to allow their mobile app to access the location and pair the device with the mobile app again.
+  */
+  int getCity(String &province, String &city, String &area);
+
+  // need atop_base_response_free(atop_base_response_t *response); after use
+  int get(const char *code, atop_base_response_t *response);
 
 private:
   tuya_iot_client_t *_clientHandle = &ArduinoIoTClient;
 
-  int _allowWeatherUpdate(tuya_iot_client_t *client);
-  char* _getWeatherCode(uint32_t index);
-  int _atopWeatherRequest(char* code, atop_base_response_t *response);
+  bool _allowUpdate(void);
 };
 
 #endif // !__TUYA_IOT_WEATHER_H__
