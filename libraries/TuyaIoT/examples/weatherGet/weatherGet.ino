@@ -21,11 +21,8 @@ tLed led(ledPin, LOW);
 #define buttonLongPressMs (3*1000u)
 
 // Tuya license
-// #define TUYA_DEVICE_UUID    "uuidxxxxxxxxxxxxxxxx"
-// #define TUYA_DEVICE_AUTHKEY "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-#define TUYA_DEVICE_UUID    "uuidc0ce6be00a118b8b"
-#define TUYA_DEVICE_AUTHKEY "nuoIWlGJAppAbPX5ONjc8hmVHsPNoCgd"
+#define TUYA_DEVICE_UUID    "uuidxxxxxxxxxxxxxxxx"
+#define TUYA_DEVICE_AUTHKEY "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 #define DPID_SWITCH 1
 
