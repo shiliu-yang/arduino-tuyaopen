@@ -1,5 +1,7 @@
 #include "SerialUART.h"
 
+#include "tal_memory.h"
+
 static SerialUART* __serialPtr[TUYA_UART_NUM_MAX] = {nullptr};
 
 extern "C" void __uartRxCallback(TUYA_UART_NUM_E port_id)
@@ -230,7 +232,7 @@ size_t SerialUART::vPrintf(const char *pFmt, va_list ap) {
     return 0;
   }
   if (len >= sizeof(localBuf)) {
-    temp = (char *)malloc(len + 1);
+    temp = (char *)tal_malloc(len + 1);
     if (temp == nullptr) {
       va_end(ap);
       return 0;
@@ -240,7 +242,7 @@ size_t SerialUART::vPrintf(const char *pFmt, va_list ap) {
   va_end(ap);
   len = write((uint8_t *)temp, len);
   if (temp != localBuf) {
-    free(temp);
+    tal_free(temp);
   }
   return len;
 }
