@@ -28,12 +28,16 @@ public:
     using Print::write; // pull in write(str) and write(buf, size) from Print
     operator bool();
 
+    size_t printf(const char *format, ...);
+
     // rx callback function
     int __rxBufWrite(uint8_t c);
 private:
     uint8_t __uartID = TUYA_UART_NUM_MAX;
     MUTEX_HANDLE __mutex;
     RingBufferN<256> _rxBuffer;
+
+    size_t vPrintf(const char *pFmt, va_list ap);
 };
 
 }

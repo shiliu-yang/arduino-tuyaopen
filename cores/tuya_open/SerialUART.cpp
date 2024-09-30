@@ -207,4 +207,42 @@ SerialUART::operator bool() {
   return (__uartID < TUYA_UART_NUM_MAX) ? true : false;
 }
 
+size_t SerialUART::printf(const char *format, ...)
+{
+  va_list ap;
+  va_start(ap, format);
+  size_t rt = vPrintf(format, ap);
+  va_end(ap);
+  return rt;
+}
+
+size_t SerialUART::vPrintf(const char *pFmt, va_list ap) {
+  char localBuf[64];
+  char *temp = localBuf;
+
+  va_list copy;
+  va_copy(copy, ap);
+
+  int len = vsnprintf(temp, sizeof(localBuf), pFmt, copy);
+  va_end(copy);
+  if (len < 0) {
+    va_end(ap);
+    return 0;
+  }
+  if (len >= sizeof(localBuf)) {
+    temp = (char *)malloc(len + 1);
+    if (temp == nullptr) {
+      va_end(ap);
+      return 0;
+    }
+    len = vsnprintf(temp, len + 1, pFmt, ap);
+  }
+  va_end(ap);
+  len = write((uint8_t *)temp, len);
+  if (temp != localBuf) {
+    free(temp);
+  }
+  return len;
+}
+
 SerialUART _SerialUART0_(defaultSerial);
