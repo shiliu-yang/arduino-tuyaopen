@@ -15,10 +15,8 @@ void delay(unsigned long ms)
 
 void delayMicroseconds(unsigned int us)
 {
-    unsigned int ms = us / 1000;
-
     // Note: tuya open sdk not support delayMicroseconds
-    ms = (ms == 0) ? 1 : ms;
+    unsigned int ms = ((us / 1000) == 0) ? 1 : (us / 1000);
 
     tal_system_sleep((uint32_t)ms);
 }
