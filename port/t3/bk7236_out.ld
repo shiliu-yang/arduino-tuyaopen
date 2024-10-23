@@ -227,8 +227,9 @@ SECTIONS
         *(.data)
         *(".data.*")
         *(.sdata)
-        *(*ts2.data *ts2.data.*)
-     *(*ts2.sdata )
+        *(*ts2.data)
+        *(*ts2.data.*)
+        *(*ts2.sdata)
         *(.video_spec_data*)
         *(.gnu.linkonce.d*)
         __data_end__ = .;
@@ -254,6 +255,8 @@ SECTIONS
         *(.bss)
         *(.bss*)
         *(COMMON)
+        *(*ts2.bss)
+        *(*ts2.bss.*)
         . = ALIGN(4);
         _nocache_start = .;
         *(.sram_nocache*)
@@ -308,24 +311,28 @@ SECTIONS
         . = ALIGN(4);
         __video_cache_bss_end__ = .;
     } > PSRAM
- . = __exidx_end + SIZEOF(.data) + 0x40000;
- . = ALIGN(0x8);
-    .ty_text_section ALIGN(0x10000) :
+    .ty_null_text_section :
+    {
+    } > FLASH
+    PROVIDE(__ty_null_text_section = LOADADDR(.ty_null_text_section));
+    . = __ty_null_text_section + SIZEOF(.ty_null_text_section);
+    . = ALIGN(0x8);
+    .ty_text_section ALIGN(0x1000) :
     {
         _ty_section_start = .;
-  PROVIDE_HIDDEN (__init_array_start = .);
-  KEEP (*(SORT(*.init_array.*)))
-  KEEP (*(*.init_array*))
-  PROVIDE_HIDDEN (__init_array_end = .);
-  _ty_section_caa_end = .;
-  *libCHIP.a:*(.text .text.*)
-  *(*ts2.text *ts2.text.*)
-  _ty_section_text_end = .;
-  *libCHIP.a:*(.rodata .rodata.*)
-  *(*ts2.rodata *ts2.rodata.*)
-  _ty_section_end = .;
+        PROVIDE_HIDDEN (__init_array_start = .);
+        KEEP (*(SORT(*.init_array.*)))
+        KEEP (*(*.init_array*))
+        PROVIDE_HIDDEN (__init_array_end = .);
+        _ty_section_caa_end = .;
+        *libCHIP.a:*(.text .text.*)
+        *(*ts2.text *ts2.text.*)
+        _ty_section_text_end = .;
+        *libCHIP.a:*(.rodata .rodata.*)
+        *(*ts2.rodata *ts2.rodata.*)
+        _ty_section_end = .;
     } >FLASH
- ty_section_size = SIZEOF(.ty_text_section);
+    ty_section_size = SIZEOF(.ty_text_section);
     __MSPTop = ORIGIN(RAM) + LENGTH(RAM);
     __MSPLimit = __MSPTop - __MSP_STACK_SIZE;
     ASSERT((s_rom_end < ORIGIN(FLASH) + LENGTH(FLASH)), "ROM overflow!!!")
