@@ -207,20 +207,20 @@ t5.compiler.open_sdk_includes.flags={compiler.port.path}open_sdk_includes.txt
 t5.compiler.libs.path={compiler.port.path}libs/
 t5.compiler.libs.flags={compiler.flags.path}libs.txt
 
-t5.libs.files =  -L {compiler.libs.path} -lm -lgcc -lc -lnosys -lm -lgcc -lc -lnosys -Wl,--start-group @{compiler.libs.flags} "{archive_file_path}" {compiler.libs.path}/bk_idk/libbk_phy.a -ltuyaos -lm -lgcc -lc -lnosys -lm -lgcc -lc -lnosys -Wl,--end-group
+t5.libs.files = -L {compiler.libs.path} -Wl,--start-group @{compiler.libs.flags} "{archive_file_path}" -Wl,--end-group
 
 # python3 path
 t5.python3.cmd.w={runtime.tools.env-python.path}/python.exe
 t5.python3.cmd.l={runtime.tools.env-python.path}/venv/bin/python3
 
 # prebuild
-t5.prebuild.cmd.w=echo "TODO"
-t5.prebuild.cmd.l=echo "TODO"
+t5.prebuild.cmd.w={python3.cmd.w} -u {compiler.port.path}script/prebuild.py --compiler-path {compiler.path} --port-path {runtime.platform.path}/port/t5/ --vendor-path {runtime.tools.vendor-t5.path}/ --platform-path {runtime.platform.path}/ --build-path {build.path}/ --sketch-path {sketch_path}/ --use-python-venv 1
+t5.prebuild.cmd.l=bash {compiler.port.path}script/prebuild.sh {runtime.tools.env-python.path}/venv/ {compiler.port.path}script --compiler-path {compiler.path} --port-path {runtime.platform.path}/port/t5/ --vendor-path {runtime.tools.vendor-t5.path}/ --platform-path {runtime.platform.path}/ --build-path {build.path}/ --sketch-path {sketch_path}/
 t5.prebuild.cmd.m=echo "TODO"
 
 # extend
-t5.compiler.extend.cmd.w=echo "TODO"
-t5.compiler.extend.cmd.l=echo "TODO"
+t5.compiler.extend.cmd.w={python3.cmd.w} {compiler.port.path}script/extend.py --compiler-path "{compiler.path}" --port-path {runtime.platform.path}/port/t5/ --output-path "{build.path}" --output-name "{build.project_name}"
+t5.compiler.extend.cmd.l={python3.cmd.l} {compiler.port.path}script/extend.py --compiler-path "{compiler.path}" --port-path {runtime.platform.path}/port/t5/ --output-path "{build.path}" --output-name "{build.project_name}"
 t5.compiler.extend.cmd.m=echo "TODO"
 
 # export compiled binary

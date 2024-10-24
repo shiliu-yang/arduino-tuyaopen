@@ -1,3 +1,7 @@
+-lm
+-lgcc
+-lc
+-lnosys
 -lstdc++
 -lcoredump
 -lcmsis
@@ -138,7 +142,7 @@
 -lbk_common
 -lwifi
 -lbluetooth_controller_controller_only
--lbk_phy
+-lbk_idk-libbk_phy
 -lble_wifi_exchange
 -lusb
 -laacdec
@@ -162,3 +166,4 @@
 -lsbc
 -lvideo_osi
 -lwav
+-ltuyaos
