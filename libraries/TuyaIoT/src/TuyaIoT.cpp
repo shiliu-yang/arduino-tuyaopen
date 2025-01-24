@@ -7,21 +7,17 @@
 extern "C" {
 #include <string.h>
 
-#include "tuya_iot_dp.h"
 #include "tal_time_service.h"
+#include "tuya_iot_dp.h"
 }
-
-
 
 /******************************************************************************
  * GLOBAL VARIABLES
  ******************************************************************************/
 
-
 /******************************************************************************
  * LOCAL MODULE FUNCTIONS
  ******************************************************************************/
-
 
 /******************************************************************************
  * CTOR/DTOR
@@ -39,7 +35,7 @@ TuyaIoTCloudClass::~TuyaIoTCloudClass()
 /******************************************************************************
  * PUBLIC MEMBER FUNCTIONS
  ******************************************************************************/
-void TuyaIoTCloudClass::setEventCallback(void (*callback)(tuya_event_msg_t* event))
+void TuyaIoTCloudClass::setEventCallback(void (*callback)(tuya_event_msg_t *event))
 {
   app_iot_event_register_cb(callback);
 }
@@ -75,7 +71,7 @@ void TuyaIoTCloudClass::begin(const char *pid, const char *version, const char *
   app_iot_task_start(this->_pid, this->_version);
 }
 
-int TuyaIoTCloudClass::objWrite(uint8_t dpid, void* value, TIME_T timestamp)
+int TuyaIoTCloudClass::objWrite(uint8_t dpid, void *value, TIME_T timestamp)
 {
   dp_obj_t dpObj;
 
@@ -93,42 +89,43 @@ int TuyaIoTCloudClass::objWrite(uint8_t dpid, void* value, TIME_T timestamp)
   }
 
   // dpid
-  dpObj.id = dpid;
+  dpObj.id         = dpid;
   // type
-  dpObj.type = dpNode->desc.prop_tp;
+  dpObj.type       = dpNode->desc.prop_tp;
   // timestamp
   dpObj.time_stamp = timestamp;
   // value
   switch (dpNode->desc.prop_tp) {
-    case (PROP_STR) : {
+    case (PROP_STR): {
       dpObj.value.dp_str = reinterpret_cast<char *>(value);
     } break;
-    case PROP_VALUE:{
+    case PROP_VALUE: {
       dpObj.value.dp_value = *static_cast<int *>(value);
     } break;
-    case PROP_ENUM:{
+    case PROP_ENUM: {
       dpObj.value.dp_enum = *static_cast<uint32_t *>(value);
     } break;
-    case PROP_BITMAP:{
+    case PROP_BITMAP: {
       dpObj.value.dp_bitmap = *static_cast<uint32_t *>(value);
     } break;
-    case PROP_BOOL:{
+    case PROP_BOOL: {
       dpObj.value.dp_bool = *static_cast<bool *>(value);
     } break;
-    default:{
+    default: {
       PR_ERR("The data type (void *) is not supported, dpid %d type %d  ", dpid, dpNode->desc.prop_tp);
       return OPRT_COM_ERROR;
     }
   }
 
-  return tuya_iot_dp_obj_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, &dpObj, 1, timestamp);;
+  return tuya_iot_dp_obj_report(&ArduinoIoTClient, ArduinoIoTClient.activate.devid, &dpObj, 1, timestamp);
+  ;
 }
 
-int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint32_t timeout)
+int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t *value, uint16_t len, uint32_t timeout)
 {
   int rt = OPRT_OK;
 
-  dp_raw_t *dpRaw = NULL;
+  dp_raw_t *dpRaw   = NULL;
   size_t mallocSize = 0;
 
   PR_DEBUG("rawWrite");
@@ -145,7 +142,7 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
   }
 
   mallocSize = sizeof(dp_raw_t) + len;
-  dpRaw = (dp_raw_t *)tal_malloc(mallocSize);
+  dpRaw      = (dp_raw_t *)tal_malloc(mallocSize);
   if (dpRaw == NULL) {
     PR_ERR("malloc failed");
     return OPRT_MALLOC_FAILED;
@@ -154,7 +151,7 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
 
   PR_HEXDUMP_DEBUG("rawWrite", value, len);
 
-  dpRaw->id = dpid;
+  dpRaw->id  = dpid;
   dpRaw->len = len;
   memcpy(dpRaw->data, value, len);
 
@@ -166,7 +163,7 @@ int TuyaIoTCloudClass::rawWrite(uint8_t dpid, uint8_t* value, uint16_t len, uint
   return rt;
 }
 
-int TuyaIoTCloudClass::objRead(tuya_event_msg_t* event, uint8_t dpid, dp_prop_tp_t &type, dp_value_t &value)
+int TuyaIoTCloudClass::objRead(tuya_event_msg_t *event, uint8_t dpid, dp_prop_tp_t &type, dp_value_t &value)
 {
   int rt = OPRT_OK;
 
@@ -181,7 +178,7 @@ int TuyaIoTCloudClass::objRead(tuya_event_msg_t* event, uint8_t dpid, dp_prop_tp
   }
 
   dp_obj_recv_t *dpObj = event->value.dpobj;
-  dp_obj_t *p = NULL;
+  dp_obj_t *p          = NULL;
 
   // find dp
   for (int i = 0; i < dpObj->dpscnt; i++) {
@@ -196,13 +193,13 @@ int TuyaIoTCloudClass::objRead(tuya_event_msg_t* event, uint8_t dpid, dp_prop_tp
     return OPRT_COM_ERROR;
   }
 
-  type = p->type;
+  type  = p->type;
   value = p->value;
 
   return rt;
 }
 
-int TuyaIoTCloudClass::read(tuya_event_msg_t* event, uint8_t dpid, uint8_t*& value, uint16_t& len)
+int TuyaIoTCloudClass::read(tuya_event_msg_t *event, uint8_t dpid, uint8_t *&value, uint16_t &len)
 {
   int rt = OPRT_OK;
 
@@ -228,17 +225,17 @@ int TuyaIoTCloudClass::read(tuya_event_msg_t* event, uint8_t dpid, uint8_t*& val
   }
 
   value = dpraw->dp.data;
-  len = dpraw->dp.len;
+  len   = dpraw->dp.len;
 
   return rt;
 }
 
-tuya_event_id_t TuyaIoTCloudClass::eventGetId(tuya_event_msg_t* event)
+tuya_event_id_t TuyaIoTCloudClass::eventGetId(tuya_event_msg_t *event)
 {
   return event->id;
 }
 
-uint16_t TuyaIoTCloudClass::eventGetDpNum(tuya_event_msg_t* event)
+uint16_t TuyaIoTCloudClass::eventGetDpNum(tuya_event_msg_t *event)
 {
   if (NULL == event) {
     PR_ERR("event is NULL");
@@ -253,7 +250,7 @@ uint16_t TuyaIoTCloudClass::eventGetDpNum(tuya_event_msg_t* event)
   return event->value.dpobj->dpscnt;
 }
 
-uint8_t TuyaIoTCloudClass::eventGetDpId(tuya_event_msg_t* event, uint16_t index)
+uint8_t TuyaIoTCloudClass::eventGetDpId(tuya_event_msg_t *event, uint16_t index)
 {
   if (NULL == event) {
     PR_ERR("event is NULL");
@@ -273,7 +270,7 @@ int TuyaIoTCloudClass::remove(void)
   return tuya_iot_reset(&ArduinoIoTClient);
 }
 
-int TuyaIoTCloudClass::readBoardLicense(tuya_iot_license_t* license)
+int TuyaIoTCloudClass::readBoardLicense(tuya_iot_license_t *license)
 {
   return tuya_iot_license_read(license);
 }
@@ -304,7 +301,6 @@ bool TuyaIoTCloudClass::isTimeSync(void)
 /******************************************************************************
  * PRIVATE MEMBER FUNCTIONS
  ******************************************************************************/
-
 
 /******************************************************************************
  * EXTERN DEFINITION

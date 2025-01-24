@@ -1,41 +1,42 @@
 
 #include "Wire.h"
 
-#include "tuya_cloud_types.h"
 #include "tal_memory.h"
+#include "tuya_cloud_types.h"
 
-#include "tkl_pinmux.h"
 #include "tkl_i2c.h"
+#include "tkl_pinmux.h"
 
-TwoWire::TwoWire(uint8_t port) 
-  : _i2cPort(port), _clkHz(100000),
-  _rxBuffer(nullptr), _rxIndex(0), _rxLength(0),
-  _txBuffer(nullptr), _txLength(0), _txAddress(0),
-  _timeOutMillis(50)
+TwoWire::TwoWire(uint8_t port)
+  : _i2cPort(port), _clkHz(100000), _rxBuffer(nullptr), _rxIndex(0), _rxLength(0), _txBuffer(nullptr), _txLength(0),
+    _txAddress(0), _timeOutMillis(50)
 {
-
 }
 
-TwoWire::~TwoWire() {
+TwoWire::~TwoWire()
+{
   end();
 }
 
-void TwoWire::setClock(uint32_t freq) {
+void TwoWire::setClock(uint32_t freq)
+{
   _clkHz = freq;
 }
 
-
-bool TwoWire::setSDA(pin_size_t sda) {
+bool TwoWire::setSDA(pin_size_t sda)
+{
   _sda = sda;
   return true;
 }
 
-bool TwoWire::setSCL(pin_size_t scl) {
+bool TwoWire::setSCL(pin_size_t scl)
+{
   _scl = scl;
   return true;
 }
 
-void TwoWire::begin() {
+void TwoWire::begin()
+{
   int rt = OPRT_OK;
 
   if (_isBegin) {
@@ -53,7 +54,7 @@ void TwoWire::begin() {
   tkl_io_pinmux_config(_sda, TUYA_IIC0_SDA);
 
   TUYA_IIC_BASE_CFG_T i2cCfg;
-  i2cCfg.role = TUYA_IIC_MODE_MASTER;
+  i2cCfg.role       = TUYA_IIC_MODE_MASTER;
   i2cCfg.addr_width = TUYA_IIC_ADDRESS_7BIT;
   switch (_clkHz) {
     case 400000:
@@ -84,12 +85,14 @@ void TwoWire::begin() {
   return;
 }
 
-void TwoWire::begin(uint8_t address) {
+void TwoWire::begin(uint8_t address)
+{
   _txAddress = address;
   begin();
 }
 
-void TwoWire::end() {
+void TwoWire::end()
+{
   if (!_isBegin) {
     return;
   }
@@ -100,13 +103,15 @@ void TwoWire::end() {
   _isBegin = 0;
 }
 
-void TwoWire::beginTransmission(uint8_t address) {
+void TwoWire::beginTransmission(uint8_t address)
+{
   _txAddress = address;
 
   _txLength = 0;
 }
 
-uint8_t TwoWire::endTransmission(bool stopBit) {
+uint8_t TwoWire::endTransmission(bool stopBit)
+{
   int rt = OPRT_OK;
 
   if (!_isBegin) {
@@ -123,11 +128,13 @@ uint8_t TwoWire::endTransmission(bool stopBit) {
   return ((OPRT_OK == rt) ? 0 : 4);
 }
 
-uint8_t TwoWire::endTransmission(void) {
+uint8_t TwoWire::endTransmission(void)
+{
   return endTransmission(true);
 }
 
-size_t TwoWire::requestFrom(uint8_t address, size_t len, bool stopBit) {
+size_t TwoWire::requestFrom(uint8_t address, size_t len, bool stopBit)
+{
   int rt = OPRT_OK;
 
   if (_rxBuffer == nullptr || _txBuffer == nullptr) {
@@ -135,7 +142,7 @@ size_t TwoWire::requestFrom(uint8_t address, size_t len, bool stopBit) {
     return 0;
   }
 
-  _rxIndex = 0;
+  _rxIndex  = 0;
   _rxLength = 0;
 
   len = (len > _bufferSize) ? _bufferSize : len;
@@ -149,11 +156,13 @@ size_t TwoWire::requestFrom(uint8_t address, size_t len, bool stopBit) {
   return len;
 }
 
-size_t TwoWire::requestFrom(uint8_t address, size_t len) {
+size_t TwoWire::requestFrom(uint8_t address, size_t len)
+{
   return requestFrom(address, len, true);
 }
 
-size_t TwoWire::write(uint8_t data) {
+size_t TwoWire::write(uint8_t data)
+{
   if (_txBuffer == nullptr) {
     Serial.println("NULL TX buffer pointer");
     return 0;
@@ -165,7 +174,8 @@ size_t TwoWire::write(uint8_t data) {
   return 1;
 }
 
-size_t TwoWire::write(const uint8_t *data, size_t quantity) {
+size_t TwoWire::write(const uint8_t *data, size_t quantity)
+{
   for (size_t i = 0; i < quantity; ++i) {
     if (!write(data[i])) {
       return i;
@@ -183,7 +193,8 @@ int TwoWire::available()
   return _rxLength - _rxIndex;
 }
 
-int TwoWire::read() {
+int TwoWire::read()
+{
   int value = -1;
   if (_rxBuffer == nullptr) {
     Serial.println("NULL RX buffer pointer");
@@ -195,7 +206,8 @@ int TwoWire::read() {
   return value;
 }
 
-int TwoWire::peek() {
+int TwoWire::peek()
+{
   int value = -1;
   if (_rxBuffer == nullptr) {
     Serial.println("NULL RX buffer pointer");
@@ -207,17 +219,20 @@ int TwoWire::peek() {
   return value;
 }
 
-void TwoWire::flush() {
-  _rxIndex = 0;
+void TwoWire::flush()
+{
+  _rxIndex  = 0;
   _rxLength = 0;
   _txLength = 0;
 }
 
-void TwoWire::onReceive(void(*)(int)) {
+void TwoWire::onReceive(void (*)(int))
+{
   // Not support slave mode
 }
 
-void TwoWire::onRequest(void(*)(void)) {
+void TwoWire::onRequest(void (*)(void))
+{
   // Not support slave mode
 }
 
@@ -269,11 +284,12 @@ size_t TwoWire::setBufferSize(size_t bSize)
   return _bufferSize;
 }
 
-void TwoWire::freeWireBuffer() {
+void TwoWire::freeWireBuffer()
+{
   if (nullptr != _txBuffer) {
     tal_free(_txBuffer);
     _txBuffer = nullptr;
-    _rxIndex = 0;
+    _rxIndex  = 0;
     _rxLength = 0;
   }
 

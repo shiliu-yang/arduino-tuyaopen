@@ -14,16 +14,16 @@
 
 */
 
-#include <WiFi.h>
-#include <MQTTClient.h>
 #include <Log.h>
+#include <MQTTClient.h>
+#include <WiFi.h>
 // Update these with values suitable for your network.
 
-const char* ssid = "your_ssid";
-const char* password = "your_passwd";
-const char* mqtt_server = "broker.emqx.io";
+const char *ssid          = "your_ssid";
+const char *password      = "your_passwd";
+const char *mqtt_server   = "broker.emqx.io";
 const char *mqtt_username = "emqx";
-const char *mqtt_password ="public";
+const char *mqtt_password = "public";
 
 void *cli;
 MQTTClient mqtt;
@@ -32,13 +32,13 @@ MQTTClient mqtt;
 void mqtt_message_cb(void *client, uint16_t msgid, const mqtt_client_message_t *msg, void *userdata)
 {
   char message[256] = {0};
-  memcpy(message ,msg->payload ,msg->length); 
+  memcpy(message, msg->payload, msg->length);
   Serial.print("message:");
   Serial.println(message);
-  mqtt.publish(cli,"youroutTopic",message);
+  mqtt.publish(cli, "youroutTopic", message);
 }
 
-void  setup()
+void setup()
 {
   Log.setLevel(LogClass::DEBUG);
   Serial.begin(115200);
@@ -59,15 +59,15 @@ void  setup()
   Serial.println(WiFi.localIP());
 
   mqtt_client_config_t config = {0};
-  config.cacert = NULL;
-  config.cacert_len = 0;
-  config.host = mqtt_server;
-  config.port = 1883;
-  config.keepalive = 120;
-  config.timeout_ms = 8000;
-  config.username = mqtt_username;
-  config.password = mqtt_password;
-  config.clientid = "ty_test_id"; 
+  config.cacert               = NULL;
+  config.cacert_len           = 0;
+  config.host                 = mqtt_server;
+  config.port                 = 1883;
+  config.keepalive            = 120;
+  config.timeout_ms           = 8000;
+  config.username             = mqtt_username;
+  config.password             = mqtt_password;
+  config.clientid             = "ty_test_id";
 
   mqtt.SetCallback(mqtt_message_cb);
   cli = mqtt.init(&config);
@@ -77,8 +77,8 @@ void loop()
 {
   if (!mqtt.connected()) {
     mqtt.connect(cli);
-    mqtt.publish(cli,"youroutTopic","hello world");
-    mqtt.subscribe(cli,"inTopic");
+    mqtt.publish(cli, "youroutTopic", "hello world");
+    mqtt.subscribe(cli, "inTopic");
   }
   mqtt.loop(cli);
 }

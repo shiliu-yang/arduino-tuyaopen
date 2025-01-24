@@ -4,49 +4,45 @@
 #include "TuyaIoTWeather.h"
 
 // tuya open sdk
-#include "tal_time_service.h"
-#include "tal_memory.h"
-#include "tal_log.h"
 #include "atop_base.h"
 #include "cJSON.h"
+#include "tal_log.h"
+#include "tal_memory.h"
+#include "tal_time_service.h"
 
 /******************************************************************************
  * CONSTANT
  ******************************************************************************/
-#define ENABLE_WEATHER_DEBUG      1
+#define ENABLE_WEATHER_DEBUG 1
 
-#define WEATHER_API              "thing.weather.get"
-#define API_VERSION              "1.0"
+#define WEATHER_API "thing.weather.get"
+#define API_VERSION "1.0"
 
 /******************************************************************************
  * TYPEDEF DEFINE
  ******************************************************************************/
 
-
 /******************************************************************************
  * GLOBAL VARIABLES
  ******************************************************************************/
-
 
 /******************************************************************************
  * LOCAL MODULE FUNCTIONS
  ******************************************************************************/
 
-
 /******************************************************************************
  * CTOR/DTOR
  ******************************************************************************/
 
-
 /******************************************************************************
  * PUBLIC MEMBER FUNCTIONS
  ******************************************************************************/
-int TuyaIoTWeatherClass::get(const char* code, atop_base_response_t *response)
+int TuyaIoTWeatherClass::get(const char *code, atop_base_response_t *response)
 {
-  int rt = OPRT_OK;
+  int rt           = OPRT_OK;
   TIME_T timestamp = 0;
-  char *postData = NULL;
-  int postDataLen = 0;
+  char *postData   = NULL;
+  int postDataLen  = 0;
   atop_base_request_t atopRequest;
 
   rt = tal_time_check_time_sync();
@@ -80,14 +76,14 @@ int TuyaIoTWeatherClass::get(const char* code, atop_base_response_t *response)
   PR_DEBUG("Post: %s", postData);
 
   memset(&atopRequest, 0, sizeof(atop_base_request_t));
-  atopRequest.devid = _clientHandle->activate.devid;
-  atopRequest.key  = _clientHandle->activate.seckey;
-  atopRequest.path = "/d.json";
+  atopRequest.devid     = _clientHandle->activate.devid;
+  atopRequest.key       = _clientHandle->activate.seckey;
+  atopRequest.path      = "/d.json";
   atopRequest.timestamp = timestamp;
-  atopRequest.api = WEATHER_API;
-  atopRequest.version = API_VERSION;
-  atopRequest.data =  reinterpret_cast<void *>(postData);
-  atopRequest.datalen = strlen(postData);
+  atopRequest.api       = WEATHER_API;
+  atopRequest.version   = API_VERSION;
+  atopRequest.data      = reinterpret_cast<void *>(postData);
+  atopRequest.datalen   = strlen(postData);
 
   rt = atop_base_request(&atopRequest, response);
   if (OPRT_OK != rt) {
@@ -101,7 +97,7 @@ int TuyaIoTWeatherClass::get(const char* code, atop_base_response_t *response)
 }
 
 // Today weather
-int TuyaIoTWeatherClass::getCurrentConditions(int& weather, int &temp, int &humi, int &realFeel, int &mbar, int &uvi)
+int TuyaIoTWeatherClass::getCurrentConditions(int &weather, int &temp, int &humi, int &realFeel, int &mbar, int &uvi)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -110,7 +106,8 @@ int TuyaIoTWeatherClass::getCurrentConditions(int& weather, int &temp, int &humi
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.conditionNum\",\"w.temp\",\"w.humidity\",\"w.realFeel\",\"w.pressure\",\"w.uvi\",\"w.currdate\"";
+  const char *requestCode =
+    "\"w.conditionNum\",\"w.temp\",\"w.humidity\",\"w.realFeel\",\"w.pressure\",\"w.uvi\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -127,13 +124,13 @@ int TuyaIoTWeatherClass::getCurrentConditions(int& weather, int &temp, int &humi
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.conditionNum");
     if (item) {
       String weatherStr = item->valuestring;
-      weather = weatherStr.toInt();
+      weather           = weatherStr.toInt();
     }
 
     item = cJSON_GetObjectItem(dataObj, "w.temp");
@@ -176,7 +173,7 @@ int TuyaIoTWeatherClass::getTodayHighLowTemp(int &highTemp, int &lowTemp)
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.thigh\",\"w.tlow\",\"w.date.1\"";
+  const char *requestCode = "\"w.thigh\",\"w.tlow\",\"w.date.1\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -193,7 +190,7 @@ int TuyaIoTWeatherClass::getTodayHighLowTemp(int &highTemp, int &lowTemp)
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.thigh.0");
@@ -221,7 +218,7 @@ int TuyaIoTWeatherClass::getCurrentWind(String &windDir, String &windSpeed)
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.windDir\",\"w.windSpeed\",\"w.currdate\"";
+  const char *requestCode = "\"w.windDir\",\"w.windSpeed\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -238,7 +235,7 @@ int TuyaIoTWeatherClass::getCurrentWind(String &windDir, String &windSpeed)
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.windDir");
@@ -266,7 +263,7 @@ int TuyaIoTWeatherClass::getCurrentWindCN(String &windDir, String &windSpeed, in
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.windDir\",\"w.windSpeed\",\"w.windLevel\",\"w.currdate\"";
+  const char *requestCode = "\"w.windDir\",\"w.windSpeed\",\"w.windLevel\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -283,7 +280,7 @@ int TuyaIoTWeatherClass::getCurrentWindCN(String &windDir, String &windSpeed, in
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.windDir");
@@ -316,7 +313,7 @@ int TuyaIoTWeatherClass::getCurrentSunriseSunsetGMT(String &sunrise, String &sun
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.sunrise\",\"w.sunset\",\"t.unix\",\"w.currdate\"";
+  const char *requestCode = "\"w.sunrise\",\"w.sunset\",\"t.unix\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -333,7 +330,7 @@ int TuyaIoTWeatherClass::getCurrentSunriseSunsetGMT(String &sunrise, String &sun
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.sunrise");
@@ -361,7 +358,7 @@ int TuyaIoTWeatherClass::getCurrentSunriseSunsetLocal(String &sunrise, String &s
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.sunrise\",\"w.sunset\",\"t.local\",\"w.currdate\"";
+  const char *requestCode = "\"w.sunrise\",\"w.sunset\",\"t.local\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -378,7 +375,7 @@ int TuyaIoTWeatherClass::getCurrentSunriseSunsetLocal(String &sunrise, String &s
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.sunrise");
@@ -397,7 +394,8 @@ int TuyaIoTWeatherClass::getCurrentSunriseSunsetLocal(String &sunrise, String &s
   return rt;
 }
 
-int TuyaIoTWeatherClass::getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, int &pm10, int &o3, int &no2, int &co, int &so2)
+int TuyaIoTWeatherClass::getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, int &pm10, int &o3, int &no2, int &co,
+                                       int &so2)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -406,7 +404,8 @@ int TuyaIoTWeatherClass::getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, i
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.aqi\",\"w.qualityLevel\",\"w.pm25\",\"w.pm10\",\"w.o3\",\"w.no2\",\"w.co\",\"w.so2\",\"w.currdate\"";
+  const char *requestCode =
+    "\"w.aqi\",\"w.qualityLevel\",\"w.pm25\",\"w.pm10\",\"w.o3\",\"w.no2\",\"w.co\",\"w.so2\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -423,7 +422,7 @@ int TuyaIoTWeatherClass::getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, i
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.aqi");
@@ -472,7 +471,8 @@ int TuyaIoTWeatherClass::getCurrentAQI(int &aqi, int &qualityLevel, int &pm25, i
   return rt;
 }
 
-int TuyaIoTWeatherClass::getCurrentAQICN(int &aqi, String &rank, int &qualityLevel, int &pm25, int &pm10, int &o3, int &no2, int &co, int &so2)
+int TuyaIoTWeatherClass::getCurrentAQICN(int &aqi, String &rank, int &qualityLevel, int &pm25, int &pm10, int &o3,
+                                         int &no2, int &co, int &so2)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -481,7 +481,8 @@ int TuyaIoTWeatherClass::getCurrentAQICN(int &aqi, String &rank, int &qualityLev
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"w.aqi\",\"w.rank\",\"w.qualityLevel\",\"w.pm25\",\"w.pm10\",\"w.o3\",\"w.no2\",\"w.co\",\"w.so2\",\"w.currdate\"";
+  const char *requestCode = "\"w.aqi\",\"w.rank\",\"w.qualityLevel\",\"w.pm25\",\"w.pm10\",\"w.o3\",\"w.no2\",\"w.co\","
+                            "\"w.so2\",\"w.currdate\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -498,7 +499,7 @@ int TuyaIoTWeatherClass::getCurrentAQICN(int &aqi, String &rank, int &qualityLev
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "w.aqi");
@@ -552,7 +553,8 @@ int TuyaIoTWeatherClass::getCurrentAQICN(int &aqi, String &rank, int &qualityLev
   return rt;
 }
 
-int TuyaIoTWeatherClass::getForecastConditions(int number, std::vector<int>& weather, std::vector<int>& temp, std::vector<int>& humi, std::vector<int>& uvi, std::vector<int>& mbar)
+int TuyaIoTWeatherClass::getForecastConditions(int number, std::vector<int> &weather, std::vector<int> &temp,
+                                               std::vector<int> &humi, std::vector<int> &uvi, std::vector<int> &mbar)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -572,7 +574,8 @@ int TuyaIoTWeatherClass::getForecastConditions(int number, std::vector<int>& wea
   }
 
   char requestCode[80] = {0};
-  snprintf(requestCode, sizeof(requestCode), "\"w.conditionNum\",\"w.humidity\",\"w.temp\",\"w.uvi\",\"w.pressure\",\"w.date.%d\"", number);
+  snprintf(requestCode, sizeof(requestCode),
+           "\"w.conditionNum\",\"w.humidity\",\"w.temp\",\"w.uvi\",\"w.pressure\",\"w.date.%d\"", number);
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -589,7 +592,7 @@ int TuyaIoTWeatherClass::getForecastConditions(int number, std::vector<int>& wea
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     for (int i = 0; i < number; i++) {
@@ -630,7 +633,8 @@ int TuyaIoTWeatherClass::getForecastConditions(int number, std::vector<int>& wea
   return rt;
 }
 
-int TuyaIoTWeatherClass::getForecastConditionsCN(int number, std::vector<int>& weather, std::vector<int>& humi, std::vector<int>& uvi)
+int TuyaIoTWeatherClass::getForecastConditionsCN(int number, std::vector<int> &weather, std::vector<int> &humi,
+                                                 std::vector<int> &uvi)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -665,7 +669,7 @@ int TuyaIoTWeatherClass::getForecastConditionsCN(int number, std::vector<int>& w
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     for (int i = 0; i < number; i++) {
@@ -692,7 +696,7 @@ int TuyaIoTWeatherClass::getForecastConditionsCN(int number, std::vector<int>& w
   return rt;
 }
 
-int TuyaIoTWeatherClass::getForecastWind(int number, std::vector<String>& windDir, std::vector<String>& windSpeed)
+int TuyaIoTWeatherClass::getForecastWind(int number, std::vector<String> &windDir, std::vector<String> &windSpeed)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -726,7 +730,7 @@ int TuyaIoTWeatherClass::getForecastWind(int number, std::vector<String>& windDi
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     for (int i = 0; i < number; i++) {
@@ -747,7 +751,7 @@ int TuyaIoTWeatherClass::getForecastWind(int number, std::vector<String>& windDi
   return rt;
 }
 
-int TuyaIoTWeatherClass::getForecastHighLowTemp(int number, std::vector<int>& highTemp, std::vector<int>& lowTemp)
+int TuyaIoTWeatherClass::getForecastHighLowTemp(int number, std::vector<int> &highTemp, std::vector<int> &lowTemp)
 {
   int rt = OPRT_OK;
   atop_base_response_t response;
@@ -781,7 +785,7 @@ int TuyaIoTWeatherClass::getForecastHighLowTemp(int number, std::vector<int>& hi
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     for (int i = 0; i < number; i++) {
@@ -811,7 +815,7 @@ int TuyaIoTWeatherClass::getCity(String &province, String &city, String &area)
     return OPRT_COM_ERROR;
   }
 
-  const char* requestCode = "\"c.province\",\"c.city\",\"c.area\"";
+  const char *requestCode = "\"c.province\",\"c.city\",\"c.area\"";
 
   memset(&response, 0, sizeof(atop_base_response_t));
 
@@ -828,7 +832,7 @@ int TuyaIoTWeatherClass::getCity(String &province, String &city, String &area)
 #endif
 
   if (cJSON_HasObjectItem(response.result, "data")) {
-    cJSON *item  = NULL;
+    cJSON *item    = NULL;
     cJSON *dataObj = cJSON_GetObjectItem(response.result, "data");
 
     item = cJSON_GetObjectItem(dataObj, "c.province");

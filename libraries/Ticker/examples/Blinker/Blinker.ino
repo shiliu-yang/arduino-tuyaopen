@@ -3,23 +3,26 @@
 Ticker blinker;
 Ticker changer;
 
-float blinkerPace = 0.1;  //seconds
+float blinkerPace = 0.1; // seconds
 
 int ledStatus = 0;
 
-void blinkCallback() {
+void blinkCallback()
+{
   ledStatus = !ledStatus;
   digitalWrite(LED_BUILTIN, ledStatus);
 }
 
-void changeCallback() {
+void changeCallback()
+{
   blinkerPace = 0.5;
 
   blinker.detach();
   blinker.attach(blinkerPace, blinkCallback);
 }
 
-void setup() {
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   ledStatus = LOW;
@@ -28,5 +31,6 @@ void setup() {
   changer.once(10, changeCallback);
 }
 
-void loop() {}
-
+void loop()
+{
+}

@@ -3,7 +3,7 @@
 #include "TuyaIoT.h"
 #include <Log.h>
 
-#define ledPin  LED_BUILTIN
+#define ledPin LED_BUILTIN
 // Turn on LED when output low level
 tLed led(ledPin, LOW);
 
@@ -11,7 +11,7 @@ tLed led(ledPin, LOW);
 #define buttonPin         BUTTON_BUILTIN
 #define buttonPressLevel  LOW
 #define buttonDebounceMs  (50u)
-#define buttonLongPressMs (3*1000u)
+#define buttonLongPressMs (3 * 1000u)
 
 // Tuya license
 #define TUYA_DEVICE_UUID    "uuidxxxxxxxxxxxxxxxx"
@@ -22,7 +22,8 @@ tLed led(ledPin, LOW);
 void tuyaIoTEventCallback(tuya_event_msg_t *event);
 void buttonCheck(void);
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(115200);
 
@@ -40,19 +41,22 @@ void setup() {
   tuya_iot_license_t license;
   int rt = TuyaIoT.readBoardLicense(&license);
   if (OPRT_OK != rt) {
-    license.uuid = TUYA_DEVICE_UUID;
+    license.uuid    = TUYA_DEVICE_UUID;
     license.authkey = TUYA_DEVICE_AUTHKEY;
     Serial.println("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
   }
-  Serial.print("uuid: "); Serial.println(license.uuid);
-  Serial.print("authkey: "); Serial.println(license.authkey);
+  Serial.print("uuid: ");
+  Serial.println(license.uuid);
+  Serial.print("authkey: ");
+  Serial.println(license.authkey);
   TuyaIoT.setLicense(license.uuid, license.authkey);
 
   // The "PROJECT_VERSION" comes from the "PROJECT_VERSION" field in "appConfig.json"
   TuyaIoT.begin("qhivvyqawogv04e4", PROJECT_VERSION);
 }
 
-void loop() {
+void loop()
+{
   // put your main code here, to run repeatedly:
   led.update();
 
@@ -91,15 +95,18 @@ void tuyaIoTEventCallback(tuya_event_msg_t *event)
         switch (dpid) {
           case DPID_SWITCH: {
             TuyaIoT.read(event, DPID_SWITCH, ledState);
-            Serial.print("Receive DPID_SWITCH: "); Serial.println(ledState);
+            Serial.print("Receive DPID_SWITCH: ");
+            Serial.println(ledState);
             led.setState(ledState);
             TuyaIoT.write(DPID_SWITCH, ledState);
           } break;
-          default : break;
+          default:
+            break;
         }
       }
     } break;
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -111,7 +118,8 @@ void buttonClick()
   ledState = !ledState;
   led.setState(ledState);
 
-  Serial.print("Upload DPID_SWITCH: "); Serial.println(ledState);
+  Serial.print("Upload DPID_SWITCH: ");
+  Serial.println(ledState);
   TuyaIoT.write(DPID_SWITCH, ledState);
 }
 
@@ -121,16 +129,15 @@ void buttonLongPressStart()
   TuyaIoT.remove();
 }
 
-
 void buttonCheck(void)
 {
   static uint32_t buttonPressMs = 0;
-  static uint8_t isPress = 0;
+  static uint8_t isPress        = 0;
 
   if (digitalRead(buttonPin) == buttonPressLevel) {
     if (isPress == 0) {
       buttonPressMs = millis();
-      isPress = 1;
+      isPress       = 1;
     }
 
     // button debounce

@@ -1,15 +1,16 @@
 #include <Arduino.h>
 
-#include "pins_arduino.h"
+#include "PinsArduino.h"
 
+// clang-format off
 static TUYA_ADC_BASE_CFG_T sgAdcConfig[TUYA_ADC_NUM_MAX] = {
   {.ch_list.bits.ch_0=1, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin26
   {.ch_list.bits.ch_1=1, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin24
   {.ch_list.bits.ch_2=1, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin23
   {.ch_list.bits.ch_3=1, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin28
   {.ch_list.bits.ch_4=1, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin22
-  {.ch_list.data=0, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // not support
-  {.ch_list.data=0, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // not support
+  {.ch_list.data=0, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1},      // not support
+  {.ch_list.data=0, .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1},      // not support
 };
 
 // duty 5000 = 50%
@@ -20,8 +21,9 @@ static TUYA_PWM_BASE_CFG_T sgPwmConfig[TUYA_PWM_NUM_MAX] = {
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin8
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin24
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin26
-  {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000} // none
+  {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}  // none
 };
+// clang-format on
 
 TUYA_ADC_BASE_CFG_T adcCfgGet(uint8_t pin)
 {

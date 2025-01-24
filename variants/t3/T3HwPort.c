@@ -1,7 +1,8 @@
 #include <Arduino.h>
 
-#include "pins_arduino.h"
+#include "PinsArduino.h"
 
+// clang-format off
 static TUYA_ADC_BASE_CFG_T sgAdcConfig[TUYA_ADC_NUM_MAX+1] = {
   {.ch_list.bits.ch_1=1,  .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin25
   {.ch_list.bits.ch_2=1,  .ch_nums=1, .width=12, .mode=TUYA_ADC_CONTINUOUS, .type=TUYA_ADC_INNER_SAMPLE_VOL, .conv_cnt = 1}, // pin24
@@ -21,8 +22,9 @@ static TUYA_PWM_BASE_CFG_T sgPwmConfig[TUYA_PWM_NUM_MAX] = {
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin32
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin34
   {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}, // pin36
-  {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000} // none
+  {.polarity=TUYA_PWM_NEGATIVE, .count_mode=TUYA_PWM_CNT_UP, .duty=5000, .cycle=10000, .frequency = 1000}  // none
 };
+// clang-format on
 
 TUYA_ADC_BASE_CFG_T adcCfgGet(uint8_t pin)
 {

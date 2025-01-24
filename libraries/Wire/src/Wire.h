@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
 #include "api/HardwareI2C.h"
+#include <Arduino.h>
 
 #ifndef WIRE_BUFFER_SIZE
 #define WIRE_BUFFER_SIZE 128
@@ -26,6 +26,7 @@ protected:
   uint16_t _txAddress;
 
   uint32_t _timeOutMillis;
+
 public:
   TwoWire(uint8_t port);
   ~TwoWire();
@@ -47,8 +48,8 @@ public:
   size_t requestFrom(uint8_t address, size_t len, bool stopBit) override;
   size_t requestFrom(uint8_t address, size_t len) override;
 
-  void onReceive(void(*)(int)) override;
-  void onRequest(void(*)(void)) override;
+  void onReceive(void (*)(int)) override;
+  void onRequest(void (*)(void)) override;
 
   size_t write(uint8_t) override;
   size_t write(const uint8_t *, size_t) override;

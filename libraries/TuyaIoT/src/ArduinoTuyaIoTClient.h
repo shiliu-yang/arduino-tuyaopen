@@ -19,7 +19,7 @@ extern "C" {
 /******************************************************************************
  * TYPEDEF
  ******************************************************************************/
-void app_iot_event_register_cb(void (*callback)(tuya_event_msg_t* event));
+void app_iot_event_register_cb(void (*callback)(tuya_event_msg_t *event));
 
 void app_iot_license_set(const char *uuid, const char *authKey);
 

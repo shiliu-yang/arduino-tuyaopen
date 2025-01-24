@@ -53,16 +53,13 @@ static void __wifi_callback_event(WF_EVENT_E event, void *arg)
 void app_open_sdk_init(void)
 {
   // cJSON init
-  cJSON_Hooks hooks = {
-    .malloc_fn = tal_malloc,
-    .free_fn = tal_free
-  };
+  cJSON_Hooks hooks = {.malloc_fn = tal_malloc, .free_fn = tal_free};
   cJSON_InitHooks(&hooks);
 
   // file system init
   tal_kv_cfg_t kv_cfg = {
     .seed = "vmlkasdh93dlvlcy",
-    .key = "dflfuap134ddlduq",
+    .key  = "dflfuap134ddlduq",
   };
   tal_kv_init(&kv_cfg);
   // software timer init

@@ -1,11 +1,11 @@
-#include "TuyaIoT.h"
 #include "Log.h"
+#include "TuyaIoT.h"
 
 // button
 #define buttonPin         BUTTON_BUILTIN
 #define buttonPressLevel  LOW
 #define buttonDebounceMs  (50u)
-#define buttonLongPressMs (3*1000u)
+#define buttonLongPressMs (3 * 1000u)
 
 #define DPID_SWITCH 20
 #define DPID_MODE   21
@@ -21,7 +21,8 @@
 void tuyaIoTEventCallback(tuya_event_msg_t *event);
 void buttonCheck(void);
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(115200);
 
@@ -36,19 +37,22 @@ void setup() {
   tuya_iot_license_t license;
   int rt = TuyaIoT.readBoardLicense(&license);
   if (OPRT_OK != rt) {
-    license.uuid = TUYA_DEVICE_UUID;
+    license.uuid    = TUYA_DEVICE_UUID;
     license.authkey = TUYA_DEVICE_AUTHKEY;
     Serial.println("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
   }
-  Serial.print("uuid: "); Serial.println(license.uuid);
-  Serial.print("authkey: "); Serial.println(license.authkey);
+  Serial.print("uuid: ");
+  Serial.println(license.uuid);
+  Serial.print("authkey: ");
+  Serial.println(license.authkey);
   TuyaIoT.setLicense(license.uuid, license.authkey);
 
   // The "PROJECT_VERSION" comes from the "PROJECT_VERSION" field in "appConfig.json"
   TuyaIoT.begin("2avicuxv6zgeiquf", PROJECT_VERSION);
 }
 
-void loop() {
+void loop()
+{
   // put your main code here, to run repeatedly:
 
   // button press check
@@ -60,7 +64,7 @@ void loop() {
 void tuyaIoTEventCallback(tuya_event_msg_t *event)
 {
   tuya_event_id_t event_id = TuyaIoT.eventGetId(event);
-  
+
   switch (event_id) {
     case TUYA_EVENT_BIND_START: {
       PR_DEBUG("TUYA_EVENT_BIND_START");
@@ -99,19 +103,21 @@ void tuyaIoTEventCallback(tuya_event_msg_t *event)
             TuyaIoT.read(event, DPID_STRING, strValue);
             TuyaIoT.write(DPID_STRING, strValue);
           } break;
-          default : break;
+          default:
+            break;
         }
       }
     } break;
     case TUYA_EVENT_DP_RECEIVE_RAW: {
       uint8_t *rawValue = NULL;
-      uint16_t len = 0;
+      uint16_t len      = 0;
       TuyaIoT.read(event, DPID_RAW, rawValue, len);
       PR_DEBUG("---> len:%d", len);
       PR_HEXDUMP_DEBUG("raw", rawValue, len);
       TuyaIoT.write(DPID_RAW, rawValue, len);
     } break;
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -129,12 +135,12 @@ void buttonLongPressStart()
 void buttonCheck(void)
 {
   static uint32_t buttonPressMs = 0;
-  static uint8_t isPress = 0;
+  static uint8_t isPress        = 0;
 
   if (digitalRead(buttonPin) == buttonPressLevel) {
     if (isPress == 0) {
       buttonPressMs = millis();
-      isPress = 1;
+      isPress       = 1;
     }
 
     // button debounce
@@ -158,4 +164,3 @@ void buttonCheck(void)
     isPress = 0;
   }
 }
-

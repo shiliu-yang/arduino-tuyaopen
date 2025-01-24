@@ -9,12 +9,10 @@ extern "C" void _log_output_cb(const char *str)
 
 LogClass::LogClass(void)
 {
-
 }
 
 LogClass::~LogClass()
 {
-
 }
 
 void LogClass::begin(int buffer_size)
@@ -45,7 +43,8 @@ void LogClass::enableColor(bool enable)
 
 void LogClass::setColor(LogLevel level, ColorMode mode, ColorFont font, ColorBG background)
 {
-  tal_log_color_set(static_cast<TAL_LOG_LEVEL_E>(level), static_cast<TAL_LOG_DISPLAY_MODE_E>(mode), static_cast<TAL_LOG_FONT_COLOR_E>(font), static_cast<TAL_LOG_BACKGROUND_COLOR_E>(background));
+  tal_log_color_set(static_cast<TAL_LOG_LEVEL_E>(level), static_cast<TAL_LOG_DISPLAY_MODE_E>(mode),
+                    static_cast<TAL_LOG_FONT_COLOR_E>(font), static_cast<TAL_LOG_BACKGROUND_COLOR_E>(background));
 }
 
 LogClass Log;

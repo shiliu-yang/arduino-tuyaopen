@@ -7,14 +7,11 @@
 
 #include <Arduino.h>
 
-#include <WiFi.h>
-#include <Log.h>
-
 #include <HTTPClient.h>
+#include <Log.h>
+#include <WiFi.h>
 
-#define DPID_SWITCH 1
-
-const char* rootCACertificate = R"EOF(
+const char *rootCACertificate = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIEXjCCA0agAwIBAgITB3MSSkvL1E7HtTvq8ZSELToPoTANBgkqhkiG9w0BAQsF
 ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
@@ -44,8 +41,8 @@ slI2yayq0n2TXoHyNCLEH8rpsJRVILFsg0jc7BaFrMnF462+ajSehgj12IidNeRN
 )EOF";
 
 HTTPClient http;
-void setup() {
-
+void setup()
+{
   Serial.begin(115200);
   Log.setLevel(LogClass::DEBUG);
 
@@ -53,44 +50,46 @@ void setup() {
   Serial.println();
   Serial.println();
 
-  for(uint8_t t = 4; t > 0; t--) {
-        Serial.print("[SETUP] WAIT ...");
-        Serial.println(t);     
-        Serial.flush();
-        delay(1000);
-    }
+  for (uint8_t t = 4; t > 0; t--) {
+    Serial.print("[SETUP] WAIT ...");
+    Serial.println(t);
+    Serial.flush();
+    delay(1000);
+  }
 
   WiFi.begin("your_ssid", "your_passwd");
 }
 
-http_client_response_t http_response ={0};
+http_client_response_t http_response = {0};
 
-void loop() {
-    // wait for WiFi connection
-    if((WiFi.status() == WSS_GOT_IP)) {
-      delay(2000);
-      Serial.println("http get");
+void loop()
+{
+  // wait for WiFi connection
+  if ((WiFi.status() == WSS_GOT_IP)) {
+    delay(2000);
+    Serial.println("http get");
 
-        http.begin("https://httpbin.org/get");        
+    http.begin("https://httpbin.org/get");
 
-        http_client_header_t headers[] = {{.key = "Content-Type", .value = "application/json"}};
+    http_client_header_t headers[] = {
+      {.key = "Content-Type", .value = "application/json"}
+    };
 
-        int headers_length = sizeof(headers)/sizeof(http_client_header_t);
+    int headers_length = sizeof(headers) / sizeof(http_client_header_t);
 
-        uint16_t cacert_len = strlen(rootCACertificate)+1;
+    uint16_t cacert_len = strlen(rootCACertificate) + 1;
 
-        http_client_status_t http_status = http.GET(headers,(uint8_t)headers_length,(uint8_t *)rootCACertificate,cacert_len,&http_response);
+    http_client_status_t http_status =
+      http.GET(headers, (uint8_t)headers_length, (uint8_t *)rootCACertificate, cacert_len, &http_response);
 
-       if(http_status != HTTP_CLIENT_SUCCESS)
-        {
-            Serial.print("http_request_send error:");
-            Serial.println(http_status);
-        }else{
-            char * payload = (char *)http_response.body;
-            Serial.println(payload);
-        }
-        http.end(&http_response);
+    if (http_status != HTTP_CLIENT_SUCCESS) {
+      Serial.print("http_request_send error:");
+      Serial.println(http_status);
+    } else {
+      char *payload = (char *)http_response.body;
+      Serial.println(payload);
     }
-   delay(5000);
+    http.end(&http_response);
+  }
+  delay(5000);
 }
-

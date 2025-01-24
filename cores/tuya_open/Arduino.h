@@ -1,8 +1,8 @@
 #ifndef ARDUINO_H
 #define ARDUINO_H
 
-#include "pins_arduino.h"
 #include "api/ArduinoAPI.h"
+#include "PinsArduino.h"
 
 #if defined(__cplusplus) && !defined(c_plusplus)
 

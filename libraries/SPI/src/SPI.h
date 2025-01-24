@@ -36,8 +36,10 @@ public:
   void end();
 
   void setCS(int csPin) { _csPin = csPin; }
+
 private:
-  void _spiConfigInitAlwaysInline(TUYA_SPI_NUM_E port, TUYA_SPI_BASE_CFG_T cfg) __attribute__((__always_inline__)) {
+  void _spiConfigInitAlwaysInline(TUYA_SPI_NUM_E port, TUYA_SPI_BASE_CFG_T cfg) __attribute__((__always_inline__))
+  {
     this->_port = port;
     memcpy(&_cfg, &cfg, sizeof(TUYA_SPI_BASE_CFG_T));
   }

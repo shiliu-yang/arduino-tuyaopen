@@ -27,23 +27,23 @@ extern "C" {
 #define pin26 (26u)
 #define pin28 (28u)
 
-#define LED_BUILTIN     26
-#define BUTTON_BUILTIN  7
+#define LED_BUILTIN    26
+#define BUTTON_BUILTIN 7
 
-static const uint8_t A0 = (23u);
-static const uint8_t A1 = (22u);
-static const uint8_t A2 = (24u);
-static const uint8_t A3 = (26u);
-static const uint8_t A4 = (28u);
+const uint8_t A0 = (23u);
+const uint8_t A1 = (22u);
+const uint8_t A2 = (24u);
+const uint8_t A3 = (26u);
+const uint8_t A4 = (28u);
 
-static const uint8_t D0 = (6u);
-static const uint8_t D1 = (7u);
-static const uint8_t D2 = (8u);
-static const uint8_t D3 = (24u);
-static const uint8_t D4 = (26u);
+const uint8_t D0 = (6u);
+const uint8_t D1 = (7u);
+const uint8_t D2 = (8u);
+const uint8_t D3 = (24u);
+const uint8_t D4 = (26u);
 
 // uart
-static const uint8_t defaultSerial = 0;
+const uint8_t defaultSerial = 0;
 
 // adc
 #define TUYA_ADC_INVALID_VALUE (0xFFu)
@@ -57,16 +57,16 @@ TUYA_PWM_NUM_E pwmPinToNum(uint8_t pin);
 TUYA_PWM_BASE_CFG_T pwmCfgGet(uint8_t pin);
 
 // i2c
-#define PIN_I2C0_SCL        (20)
-#define PIN_I2C0_SDA        (22)
+#define PIN_I2C0_SCL (20)
+#define PIN_I2C0_SDA (22)
 
 // SPI
-#define SPI_DEFAULT_CLOCK  (8000000u)
+#define SPI_DEFAULT_CLOCK (8000000u)
 
-#define PIN_SPI0_MISO       (17)
-#define PIN_SPI0_MOSI       (16)
-#define PIN_SPI0_SCK        (14)
-#define PIN_SPI0_CS         (15)
+#define PIN_SPI0_MISO (17)
+#define PIN_SPI0_MOSI (16)
+#define PIN_SPI0_SCK  (14)
+#define PIN_SPI0_CS   (15)
 
 #if defined(__cplusplus) && !defined(c_plusplus)
 }

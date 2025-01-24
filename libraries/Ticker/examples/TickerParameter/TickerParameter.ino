@@ -12,7 +12,8 @@ void ticker_callback(int *arg)
   Serial.println(*arg);
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
 
   // every 1 s, call ticker_callback()
@@ -22,4 +23,6 @@ void setup() {
   ticker_5s.attach(5, ticker_callback, &arg_5s);
 }
 
-void loop() {}
+void loop()
+{
+}
